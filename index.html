@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>React Glassmorphism Adventskalender</title>
+    
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        /* --- CSS STYLES --- */
+        :root {
+            --bg-gradient: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --text-color: #ffffff;
+            --accent-gold: #ffd700;
+            --accent-red: #ff6b6b;
+            --font-main: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: var(--bg-gradient);
+            background-attachment: fixed; /* Wichtig für den Verlauf beim Scrollen */
+            font-family: var(--font-main);
+            color: var(--text-color);
+            min-height: 100vh;
+        }
+
+        #root {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .calendar-container {
+            width: 100%;
+            max-width: 900px;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            letter-spacing: 2px;
+        }
+
+        p.subtitle {
+            margin-bottom: 40px;
+            opacity: 0.8;
+            font-weight: 300;
+        }
+
+        /* --- GRID --- */
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            gap: 20px;
+            perspective: 1000px;
+        }
+
+        /* --- CARD DESIGN --- */
+        .day-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            aspect-ratio: 1/1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .day-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 15px 40px 0 rgba(0, 0, 0, 0.4);
+            border-color: rgba(255,255,255,0.4);
+        }
+
+        /* Status: Offen */
+        .day-card.opened {
+            background: rgba(255, 215, 0, 0.15); /* Goldener Schimmer */
+            border-color: var(--accent-gold);
+            color: var(--accent-gold);
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
+        }
+
+        .day-card.opened::after {
+            content: '★';
+            font-size: 1rem;
+            position: absolute;
+            bottom: 10px;
+        }
+
+        /* Status: Geschlossen (Schloss-Icon optional) */
+        .day-card:not(.opened)::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.05));
+        }
+
+        /* Animation: Wackeln bei Fehler */
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            20% { transform: translateX(-6px) rotate(-4deg); }
+            40% { transform: translateX(6px) rotate(4deg); }
+            60% { transform: translateX(-6px) rotate(-4deg); }
+            80% { transform: translateX(6px) rotate(4deg); }
+            100% { transform: translateX(0); }
+        }
+
+        .day-card.locked-shake {
+            animation: shake 0.4s ease-in-out;
+            border-color: var(--accent-red);
+            color: var(--accent-red);
+        }
+
+        /* --- MODAL --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            background: rgba(255, 255, 255, 0.95);
+            color: #333;
+            width: 100%;
+            max-width: 500px;
+            padding: 30px;
+            border-radius: 20px;
+            position: relative;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .modal-header h2 {
+            margin: 0 0 15px 0;
+            color: #1a1a1a;
+        }
+
+        .modal-body {
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .modal-body img {
+            max-width: 100%;
+            border-radius: 10px;
+            margin-top: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 2rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #666;
+            transition: color 0.2s;
+        }
+        .close-btn:hover { color: #000; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { transform: translateY(30px) scale(0.95); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
+
+    </style>
+</head>
+<body>
+
+    <div id="root"></div>
+
+    <script type="text/babel">
+        // --- 1. DATEN ---
+        // Du kannst hier einfach die Texte/Links ändern
+        const calendarData = [
+            { id: 1, type: 'text', title: 'Der Anfang', content: '✨ Willkommen im Dezember! Nimm dir heute 5 Minuten nur für dich.' },
+            { id: 2, type: 'icon', title: 'Plätzchenzeit', content: '🍪 Rezept-Idee: Backe heute deine Lieblingsplätzchen oder kaufe die besten der Stadt.' },
+            { id: 3, type: 'text', title: 'Musik an', content: '🎶 Hör dir heute dein absolutes Lieblings-Weihnachtslied an.' },
+            { id: 4, type: 'text', title: 'Lichtblick', content: '🕯️ Zünde heute Abend eine Kerze an und genieße die Ruhe.' },
+            { id: 5, type: 'text', title: 'Vorbereitung', content: '👢 Stell die Stiefel raus, morgen kommt der Nikolaus!' },
+            { id: 6, type: 'image', title: 'Nikolaus', content: 'https://images.unsplash.com/photo-1545629479-798835e39668?auto=format&fit=crop&w=500&q=60', text: '🎅 Hoffentlich warst du brav!' },
+            { id: 7, type: 'text', title: 'Kontakt', content: '📞 Rufe jemanden an, den du lange nicht gehört hast.' },
+            { id: 8, type: 'text', title: 'Wärme', content: '☕ Trink eine heiße Schokolade mit Sahne.' },
+            { id: 9, type: 'text', title: 'Spaziergang', content: '🌲 Geh eine Runde im Wald oder Park spazieren.' },
+            { id: 10, type: 'video', title: 'Kaminfeuer', content: 'https://www.youtube.com/embed/L_LUpnjgPso', text: 'Entspanne dich vor dem virtuellen Kamin.' },
+            { id: 11, type: 'text', title: 'Lesen', content: '📖 Lies ein Kapitel in einem Buch, das du schon ewig lesen wolltest.' },
+            { id: 12, type: 'text', title: 'Halbzeit', content: '🌟 Die Hälfte ist geschafft. Atme tief durch.' },
+            { id: 13, type: 'text', title: 'Filmabend', content: '🎬 Schau deinen liebsten Weihnachtsfilm.' },
+            { id: 14, type: 'text', title: 'Kompliment', content: '💬 Mache heute jemandem ein ernstes Kompliment.' },
+            { id: 15, type: 'text', title: 'Vitamine', content: '🍊 Iss eine Mandarine oder Orange. Das riecht nach Weihnachten!' },
+            { id: 16, type: 'text', title: 'Kreativ', content: '✂️ Bastel einen Papierstern fürs Fenster.' },
+            { id: 17, type: 'text', title: 'Dankbarkeit', content: '🙏 Schreibe 3 Dinge auf, für die du dieses Jahr dankbar bist.' },
+            { id: 18, type: 'text', title: 'Süßes', content: '🍫 Gönn dir ein Stück deiner Lieblingsschokolade.' },
+            { id: 19, type: 'text', title: 'Lächeln', content: '😊 Lächle heute bewusst fremde Menschen an.' },
+            { id: 20, type: 'text', title: 'Baum', content: '🎄 Hast du schon einen Weihnachtsbaum?' },
+            { id: 21, type: 'text', title: 'Winteranfang', content: '❄️ Heute ist der kürzeste Tag des Jahres. Ab jetzt wird es wieder heller.' },
+            { id: 22, type: 'text', title: 'Karten', content: '✍️ Schreibe noch schnell eine Weihnachtskarte.' },
+            { id: 23, type: 'text', title: 'Vorfreude', content: '🎁 Nur noch einmal schlafen!' },
+            { id: 24, type: 'image', title: 'Heiligabend', content: 'https://images.unsplash.com/photo-1576615278698-d48e7ac46b14?auto=format&fit=crop&w=500&q=60', text: '✨ Frohe Weihnachten und ein schönes Fest!' }
+        ];
+
+        // --- 2. DIE REACT KOMPONENTE ---
+        const { useState, useEffect } = React;
+
+        const AdventCalendar = () => {
+            const [openedDoors, setOpenedDoors] = useState([]);
+            const [activeContent, setActiveContent] = useState(null);
+            const [shakeId, setShakeId] = useState(null);
+            
+            // Lade Speicherstand beim Start
+            useEffect(() => {
+                const saved = localStorage.getItem('adventProgress2024');
+                if (saved) {
+                    setOpenedDoors(JSON.parse(saved));
+                }
+            }, []);
+
+            const handleDoorClick = (day) => {
+                const today = new Date();
+                const currentMonth = today.getMonth(); // 11 = Dezember
+                const currentDay = today.getDate();
+
+                // LOGIK:
+                // Wenn du testen willst: Setze 'isDebug' auf true
+                const isDebug = false; 
+                const isDecember = currentMonth === 11; // true wenn Dezember
+                const isDayReached = currentDay >= day.id;
+
+                if (isDebug || (isDecember && isDayReached)) {
+                    // Inhalt anzeigen
+                    setActiveContent(day);
+                    
+                    // Speichern, falls noch nicht offen
+                    if (!openedDoors.includes(day.id)) {
+                        const newOpened = [...openedDoors, day.id];
+                        setOpenedDoors(newOpened);
+                        localStorage.setItem('adventProgress2024', JSON.stringify(newOpened));
+                    }
+                } else {
+                    // Wackeln lassen (Fehler)
+                    setShakeId(day.id);
+                    setTimeout(() => setShakeId(null), 500);
+                }
+            };
+
+            return (
+                <div className="calendar-container">
+                    <h1>🎄 Adventskalender</h1>
+                    <p className="subtitle">Eine kleine Überraschung für jeden Tag</p>
+
+                    <div className="calendar-grid">
+                        {calendarData.map((day) => (
+                            <div 
+                                key={day.id}
+                                className={`day-card 
+                                    ${openedDoors.includes(day.id) ? 'opened' : ''} 
+                                    ${shakeId === day.id ? 'locked-shake' : ''}
+                                `}
+                                onClick={() => handleDoorClick(day)}
+                            >
+                                {day.id}
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* MODAL / POPUP */}
+                    {activeContent && (
+                        <div className="modal-overlay" onClick={() => setActiveContent(null)}>
+                            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                                <button className="close-btn" onClick={() => setActiveContent(null)}>&times;</button>
+                                
+                                <div className="modal-header">
+                                    <h2>{activeContent.title}</h2>
+                                </div>
+                                
+                                <div className="modal-body">
+                                    {/* Text Content */}
+                                    {activeContent.text && <p>{activeContent.text}</p>}
+                                    {activeContent.type === 'text' && !activeContent.text && <p>{activeContent.content}</p>}
+
+                                    {/* Image Content */}
+                                    {activeContent.type === 'image' && (
+                                        <img src={activeContent.content} alt="Weihnachtsbild" />
+                                    )}
+
+                                    {/* Video Content */}
+                                    {activeContent.type === 'video' && (
+                                        <div style={{marginTop: '15px'}}>
+                                            <iframe 
+                                                width="100%" height="250" 
+                                                src={activeContent.content} 
+                                                title="Video" frameBorder="0" 
+                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                                allowFullScreen
+                                                style={{borderRadius: '10px'}}
+                                            ></iframe>
+                                            {activeContent.text && <p>{activeContent.text}</p>}
+                                        </div>
+                                    )}
+
+                                    {/* Icon Content (Fallback) */}
+                                    {activeContent.type === 'icon' && (
+                                        <p style={{fontSize: '1.2rem'}}>{activeContent.content}</p>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        // --- 3. RENDERN ---
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<AdventCalendar />);
+
+    </script>
+</body>
+</html>
