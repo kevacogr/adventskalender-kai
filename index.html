@@ -13,27 +13,21 @@
     <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
 
     <style>
-        /* --- CSS STYLES: FROST-EDITION --- */
+        /* --- FROST THEME --- */
         :root {
-            /* ÄNDERUNG 2: Frostige Winternacht-Palette */
-            --bg-gradient: linear-gradient(to bottom, #020c1b, #0a2342, #1c3a63); /* Tiefes Weltraumblau zu Eisblau */
-            
-            --glass-bg: rgba(200, 230, 255, 0.05); /* Kühlerer Glas-Ton */
-            --glass-border: rgba(137, 207, 240, 0.3); /* Eisblauer Rand */
-            
-            --text-color: #e6f1ff; /* Helles Silberweiß */
+            --bg-gradient: linear-gradient(to bottom, #020c1b, #0a2342, #1c3a63);
+            --glass-bg: rgba(200, 230, 255, 0.05);
+            --glass-border: rgba(137, 207, 240, 0.3);
+            --text-color: #e6f1ff;
             --text-muted: #a8b2d1;
-            
-            --accent-ice: #89cff0; /* Helles Eisblau (statt Gold) */
-            --accent-error: #ff6b6b; /* Helles Rot für Fehler bleibt */
-
+            --accent-ice: #89cff0;
+            --accent-error: #ff6b6b;
             --font-heading: 'Cinzel Decorative', cursive;
             --font-main: 'Montserrat', sans-serif;
         }
 
         body {
-            margin: 0;
-            padding: 0;
+            margin: 0; padding: 0;
             background: #020c1b;
             background-image: var(--bg-gradient);
             background-attachment: fixed;
@@ -45,22 +39,13 @@
         }
 
         #root {
-            display: flex;
-            justify-content: center;
-            position: relative;
-            z-index: 10;
+            display: flex; justify-content: center; position: relative; z-index: 10;
         }
 
-        /* --- SCHNEEFALL EFFEKT (Unverändert, passt super) --- */
+        /* --- SCHNEE --- */
         .snowflake {
-            position: fixed;
-            top: -2vh;
-            color: #fff;
-            font-size: 1em;
-            opacity: 0.8;
-            user-select: none;
-            z-index: 1;
-            pointer-events: none;
+            position: fixed; top: -2vh; color: #fff; opacity: 0.8;
+            user-select: none; z-index: 1; pointer-events: none;
             animation: snowfall linear infinite;
         }
         @keyframes snowfall {
@@ -68,191 +53,102 @@
             100% { transform: translateY(100vh) rotate(360deg); opacity: 0.1; }
         }
 
-        /* --- MAUS CURSOR EFFEKT (Eisiger Schweif) --- */
+        /* --- CURSOR --- */
         .cursor-sparkle {
-            position: fixed;
-            width: 4px; /* Etwas feiner */
-            height: 4px;
-            background: var(--accent-ice);
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 9999;
-            box-shadow: 0 0 10px var(--accent-ice), 0 0 20px #fff; /* Weißer/Blauer Glow */
+            position: fixed; width: 4px; height: 4px; background: var(--accent-ice);
+            border-radius: 50%; pointer-events: none; z-index: 9999;
+            box-shadow: 0 0 10px var(--accent-ice), 0 0 20px #fff;
             animation: sparkleFade 1s forwards ease-out;
         }
         @keyframes sparkleFade {
-            0% { transform: scale(1); opacity: 0.8; }
-            100% { transform: scale(2.5); opacity: 0; }
+            0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(2.5); opacity: 0; }
         }
 
-        /* --- CONTAINER DESIGN --- */
+        /* --- LAYOUT --- */
         .calendar-container {
-            width: 100%;
-            max-width: 900px;
-            padding: 40px 20px;
-            text-align: center;
-            /* Kühler, bläulicher Schein */
+            width: 100%; max-width: 900px; padding: 40px 20px; text-align: center;
             box-shadow: 0 0 100px rgba(137, 207, 240, 0.1);
             background: radial-gradient(circle, rgba(255,255,255,0.03) 0%, rgba(0,0,0,0) 70%);
-            border-radius: 30px;
-            margin-top: 30px;
+            border-radius: 30px; margin-top: 30px;
         }
 
         h1 {
-            font-family: var(--font-heading);
-            font-size: 3.5rem;
-            margin-bottom: 10px;
-            /* Eisiger Texteffekt */
-            text-shadow: 0 0 15px rgba(137, 207, 240, 0.6), 0 0 30px rgba(137, 207, 240, 0.3);
-            color: var(--text-color);
-            letter-spacing: 1px;
+            font-family: var(--font-heading); font-size: 3.5rem; margin-bottom: 10px;
+            text-shadow: 0 0 15px rgba(137, 207, 240, 0.6); color: var(--text-color);
         }
 
-        p.subtitle {
-            margin-bottom: 50px;
-            font-size: 1.1rem;
-            color: var(--text-muted);
-            font-weight: 300;
-        }
+        p.subtitle { margin-bottom: 50px; font-size: 1.1rem; color: var(--text-muted); font-weight: 300; }
 
-        /* --- GRID --- */
         .calendar-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
             gap: 20px;
         }
 
-        /* --- CARD DESIGN (Frostig & Fein) --- */
+        /* --- KARTEN --- */
         .day-card {
             background: var(--glass-bg);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid var(--glass-border);
-            border-radius: 16px;
-            aspect-ratio: 1/1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 2rem;
-            font-family: var(--font-heading);
-            cursor: pointer;
-            /* Subtilere Transition */
-            transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-            position: relative;
-            overflow: hidden;
-            user-select: none;
-            color: var(--text-color);
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border); border-radius: 16px;
+            aspect-ratio: 1/1; display: flex; justify-content: center; align-items: center;
+            font-size: 2rem; font-family: var(--font-heading); cursor: pointer;
+            transition: all 0.3s ease; box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            position: relative; overflow: hidden; user-select: none; color: var(--text-color);
         }
 
-        /* ÄNDERUNG 3: Neuer, feiner "Vereisungs"-Hover */
         .day-card:hover {
-            /* Weniger Bewegung, weniger Zoom -> nicht mehr "klobig" */
-            transform: translateY(-3px) scale(1.02); 
-            
-            /* Eisiger, scharfer Rand statt weichem Glow */
+            transform: translateY(-3px) scale(1.02);
             border-color: rgba(255, 255, 255, 0.6);
             box-shadow: 0 10px 25px rgba(0,0,0,0.3), inset 0 0 15px rgba(137, 207, 240, 0.5);
-            
-            /* Optional: Ein Hauch von hellem Frost auf der Oberfläche */
             background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 40%), var(--glass-bg);
         }
 
-        /* Status: Offen (Eisblau statt Gold) */
         .day-card.opened {
-            background: rgba(137, 207, 240, 0.15); /* Eisblaues Inneres */
-            border-color: var(--accent-ice);
-            color: var(--accent-ice);
-            box-shadow: 0 0 20px rgba(137, 207, 240, 0.4); /* Kühler Glow */
+            background: rgba(137, 207, 240, 0.15); border-color: var(--accent-ice);
+            color: var(--accent-ice); box-shadow: 0 0 20px rgba(137, 207, 240, 0.4);
         }
-        .day-card.opened::after { 
-            content: '❄'; /* Schneeflocke statt Stern */
-            font-size: 1rem; 
-            position: absolute; 
-            bottom: 8px; 
-            opacity: 0.7;
-        }
+        .day-card.opened::after { content: '❄'; font-size: 1rem; position: absolute; bottom: 8px; opacity: 0.7; }
 
-        /* Glitzereffekt auf geschlossenen Karten (angepasst auf kühl) */
         .day-card:not(.opened)::before {
-            content: '';
-            position: absolute;
-            top: -50%; left: -50%; width: 200%; height: 200%;
-            /* Kühlerer Glitzer */
+            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
             background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 50%);
-            opacity: 0;
-            transition: opacity 0.4s;
-            pointer-events: none;
+            opacity: 0; transition: opacity 0.4s; pointer-events: none;
         }
         .day-card:not(.opened):hover::before { opacity: 1; }
 
-
-        /* Wackeln bei Fehler */
         @keyframes shake {
             0% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } 100% { transform: translateX(0); }
         }
         .day-card.locked-shake {
-            animation: shake 0.3s ease-in-out;
-            border-color: var(--accent-error);
-            color: var(--accent-error);
+            animation: shake 0.3s ease-in-out; border-color: var(--accent-error); color: var(--accent-error);
             box-shadow: 0 0 15px rgba(255, 107, 107, 0.4);
         }
 
-        /* --- MODAL (Popup) --- */
+        /* --- MODAL --- */
         .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(2, 12, 27, 0.85); /* Dunklerer, blauerer Hintergrund */
-            backdrop-filter: blur(15px);
-            z-index: 10000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(2, 12, 27, 0.85); backdrop-filter: blur(15px);
+            z-index: 10000; display: flex; justify-content: center; align-items: center; padding: 20px;
             animation: fadeIn 0.4s ease;
         }
-
         .modal-content {
-            /* Kühles Glas-Modal */
             background: linear-gradient(160deg, rgba(20, 40, 70, 0.9) 0%, rgba(10, 25, 50, 0.95) 100%);
-            border: 1px solid var(--glass-border);
-            color: var(--text-color);
-            width: 100%;
-            max-width: 550px;
-            padding: 40px;
-            border-radius: 25px;
-            position: relative;
-            text-align: center;
-            box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.8);
+            border: 1px solid var(--glass-border); color: var(--text-color);
+            width: 100%; max-width: 550px; padding: 40px; border-radius: 25px;
+            position: relative; text-align: center; box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.8);
             animation: zoomIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
-
         .modal-header h2 {
-            font-family: var(--font-heading);
-            font-size: 2.2rem;
-            margin: 0 0 20px 0;
-            color: var(--accent-ice); /* Eisige Überschrift */
-            text-shadow: 0 0 10px rgba(137, 207, 240, 0.3);
+            font-family: var(--font-heading); font-size: 2.2rem; margin: 0 0 20px 0;
+            color: var(--accent-ice); text-shadow: 0 0 10px rgba(137, 207, 240, 0.3);
         }
-
-        .modal-body { line-height: 1.6; color: var(--text-muted); }
-        .modal-body p.main-text { color: var(--text-color); font-size: 1.2rem; }
-
         .modal-body img {
-            max-width: 100%;
-            border-radius: 15px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-            border: 2px solid var(--glass-border);
+            max-width: 100%; border-radius: 15px; box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            border: 2px solid var(--glass-border); margin-top: 15px;
         }
-
         .close-btn {
-            position: absolute;
-            top: 20px; right: 25px;
-            font-size: 2rem;
-            background: none; border: none;
-            cursor: pointer; color: var(--text-muted);
-            transition: all 0.2s;
-            line-height: 1;
+            position: absolute; top: 20px; right: 25px; font-size: 2rem; background: none;
+            border: none; cursor: pointer; color: var(--text-muted); line-height: 1;
         }
         .close-btn:hover { color: var(--text-color); transform: scale(1.1); }
 
@@ -266,27 +162,44 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect, useRef } = React;
+        const { useState, useEffect, useRef, useMemo } = React;
 
         // --- DATEN ---
-        // (Hier wie immer deine Inhalte anpassen)
-        const calendarData = [
+        // Hier deine 24 Tage füllen.
+        const rawData = [
             { id: 1, type: 'text', title: 'Der erste Frost ❄️', content: 'Willkommen in der Kälte! Mach dir einen warmen Tee und genieße die Ruhe.' },
             { id: 2, type: 'image', title: 'Winterlandschaft', content: 'https://images.unsplash.com/photo-1485594050903-8e8ee5326c90?auto=format&fit=crop&w=600&q=80', text: 'Schau dir diese Stille an.' },
             { id: 3, type: 'icon', title: 'Eiskristall', content: 'Die Natur malt die schönsten Bilder.' },
-            // ... Restliche Tage auffüllen ...
             { id: 24, type: 'image', title: 'Frohes Fest! 🎄', content: 'https://images.unsplash.com/photo-1543589077-47d81606c1bf?auto=format&fit=crop&w=600&q=80', text: 'Genieße die magische Zeit!' }
         ];
-        while(calendarData.length < 24) {
-            calendarData.push({ id: calendarData.length + 1, type: 'text', title: `Tag ${calendarData.length + 1}`, content: 'Noch etwas Geduld in der Kälte...' });
+
+        // Daten auffüllen auf 24, falls welche fehlen
+        while(rawData.length < 24) {
+            // Wir suchen die nächste freie ID
+            const existingIds = rawData.map(d => d.id);
+            let nextId = 1;
+            while(existingIds.includes(nextId)) nextId++;
+            
+            rawData.push({ 
+                id: nextId, 
+                type: 'text', 
+                title: `Tag ${nextId}`, 
+                content: 'Noch etwas Geduld in der Kälte...' 
+            });
         }
 
-        // --- SCHNEEFALL (Unverändert) ---
+        // --- HIER PASSIERT DAS CHAOS (SHUFFLE) ---
+        // Wir mischen das Array zufällig durch.
+        // Da wir es hier machen, passiert es einmal beim Laden der Seite.
+        const shuffledData = [...rawData].sort(() => Math.random() - 0.5);
+
+
+        // --- COMPONENTS ---
         const Snowfall = () => {
             const flakes = Array.from({ length: 50 }).map((_, i) => {
                 const style = {
                     left: `${Math.random() * 100}vw`,
-                    animationDuration: `${Math.random() * 5 + 8}s`, // Etwas langsamerer Schnee
+                    animationDuration: `${Math.random() * 5 + 8}s`,
                     animationDelay: `${Math.random() * 5}s`,
                     opacity: Math.random() * 0.7 + 0.3,
                     fontSize: `${Math.random() * 1.2 + 0.4}em`
@@ -296,10 +209,8 @@
             return <>{flakes}</>;
         };
 
-        // --- MAUS-EFFEKT (Unverändert) ---
         const CursorEffect = () => {
             const [sparkles, setSparkles] = useState([]);
-            const requestRef = useRef();
             useEffect(() => {
                 let lastTime = Date.now();
                 const handleMouseMove = (e) => {
@@ -316,7 +227,6 @@
             return <>{sparkles.map(s => (<div key={s.id} className="cursor-sparkle" style={{ left: s.x, top: s.y }} />))}</>;
         };
 
-        // --- HAUPTKOMPONENTE ---
         const AdventCalendar = () => {
             const [openedDoors, setOpenedDoors] = useState([]);
             const [activeContent, setActiveContent] = useState(null);
@@ -327,13 +237,9 @@
                 if (saved) setOpenedDoors(JSON.parse(saved));
             }, []);
 
-            // ÄNDERUNG 4: Konfetti in Eis-Farben
             const fireConfetti = () => {
                 confetti({
-                    particleCount: 150,
-                    spread: 80,
-                    origin: { y: 0.6 },
-                    // Farben: Weiß, Hellblau, Silber
+                    particleCount: 150, spread: 80, origin: { y: 0.6 },
                     colors: ['#ffffff', '#89cff0', '#e0f7fa', '#bdc3c7'],
                     disableForReducedMotion: true
                 });
@@ -341,7 +247,7 @@
 
             const handleDoorClick = (day) => {
                 const today = new Date();
-                const isDebug = false; // Auf true setzen zum Testen
+                const isDebug = false; 
                 const isAllowed = isDebug || (today.getMonth() === 11 && today.getDate() >= day.id);
 
                 if (isAllowed) {
@@ -362,20 +268,21 @@
                 <>
                     <Snowfall />
                     <CursorEffect />
-
                     <div className="calendar-container">
                         <h1>Kai's Adventskalender</h1>
                         <p className="subtitle">Eine eisige Reise durch den Dezember</p>
 
                         <div className="calendar-grid">
-                            {calendarData.map((day) => (
+                            {/* Wir nutzen jetzt shuffledData statt calendarData zum Anzeigen */}
+                            {shuffledData.map((day) => (
                                 <div 
                                     key={day.id}
                                     className={`day-card 
                                         ${openedDoors.includes(day.id) ? 'opened' : ''} 
                                         ${shakeId === day.id ? 'locked-shake' : ''}
                                     `}
-                                    style={{animationDelay: `${day.id * 0.03}s`}}
+                                    /* Zufälliger Delay beim Einfliegen für mehr Chaos */
+                                    style={{animationDelay: `${Math.random() * 0.5}s`}} 
                                     onClick={() => handleDoorClick(day)}
                                 >
                                     {day.id}
@@ -389,9 +296,9 @@
                                     <button className="close-btn" onClick={() => setActiveContent(null)}>&times;</button>
                                     <div className="modal-header"><h2>{activeContent.title}</h2></div>
                                     <div className="modal-body">
-                                        {activeContent.text && <p className="main-text">{activeContent.text}</p>}
-                                        {activeContent.type === 'image' && <img src={activeContent.content} alt="Weihnachtsbild" style={{marginTop: '15px'}} />}
-                                        {activeContent.type === 'text' && !activeContent.text && <p className="main-text">{activeContent.content}</p>}
+                                        {activeContent.text && <p style={{fontSize: '1.2rem', marginBottom: '15px'}}>{activeContent.text}</p>}
+                                        {activeContent.type === 'image' && <img src={activeContent.content} alt="Content" />}
+                                        {activeContent.type === 'text' && !activeContent.text && <p style={{fontSize: '1.3rem'}}>{activeContent.content}</p>}
                                         {activeContent.type === 'icon' && <p style={{fontSize: '3rem'}}>{activeContent.content}</p>}
                                     </div>
                                 </div>
