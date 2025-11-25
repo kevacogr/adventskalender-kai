@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
 
     <style>
-        /* --- FROST THEME --- */
+        /* --- FROST DESIGN --- */
         :root {
             --bg-gradient: linear-gradient(to bottom, #020c1b, #0a2342, #1c3a63);
             --glass-bg: rgba(200, 230, 255, 0.05);
@@ -38,9 +38,7 @@
             overflow-x: hidden;
         }
 
-        #root {
-            display: flex; justify-content: center; position: relative; z-index: 10;
-        }
+        #root { display: flex; justify-content: center; position: relative; z-index: 10; }
 
         /* --- SCHNEE --- */
         .snowflake {
@@ -64,7 +62,7 @@
             0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(2.5); opacity: 0; }
         }
 
-        /* --- LAYOUT --- */
+        /* --- CONTAINER --- */
         .calendar-container {
             width: 100%; max-width: 900px; padding: 40px 20px; text-align: center;
             box-shadow: 0 0 100px rgba(137, 207, 240, 0.1);
@@ -76,7 +74,6 @@
             font-family: var(--font-heading); font-size: 3.5rem; margin-bottom: 10px;
             text-shadow: 0 0 15px rgba(137, 207, 240, 0.6); color: var(--text-color);
         }
-
         p.subtitle { margin-bottom: 50px; font-size: 1.1rem; color: var(--text-muted); font-weight: 300; }
 
         .calendar-grid {
@@ -95,18 +92,19 @@
             transition: all 0.3s ease; box-shadow: 0 5px 15px rgba(0,0,0,0.2);
             position: relative; overflow: hidden; user-select: none; color: var(--text-color);
         }
-
         .day-card:hover {
             transform: translateY(-3px) scale(1.02);
             border-color: rgba(255, 255, 255, 0.6);
             box-shadow: 0 10px 25px rgba(0,0,0,0.3), inset 0 0 15px rgba(137, 207, 240, 0.5);
             background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 40%), var(--glass-bg);
         }
-
+        /* OFFENE KARTEN BLEIBEN SO */
         .day-card.opened {
             background: rgba(137, 207, 240, 0.15); border-color: var(--accent-ice);
             color: var(--accent-ice); box-shadow: 0 0 20px rgba(137, 207, 240, 0.4);
+            cursor: default; /* Zeigt an, dass man nicht mehr klicken muss (optional) */
         }
+        /* Kleines Symbol für offene Karten */
         .day-card.opened::after { content: '❄'; font-size: 1rem; position: absolute; bottom: 8px; opacity: 0.7; }
 
         .day-card:not(.opened)::before {
@@ -154,7 +152,6 @@
 
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes zoomIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-
     </style>
 </head>
 <body>
@@ -162,10 +159,9 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect, useRef, useMemo } = React;
+        const { useState, useEffect, useRef } = React;
 
-        // --- DATEN ---
-        // Hier deine 24 Tage füllen.
+        // --- DEINE DATEN (BASIS) ---
         const rawData = [
             { id: 1, type: 'text', title: 'Der erste Frost ❄️', content: 'Willkommen in der Kälte! Mach dir einen warmen Tee und genieße die Ruhe.' },
             { id: 2, type: 'image', title: 'Winterlandschaft', content: 'https://images.unsplash.com/photo-1485594050903-8e8ee5326c90?auto=format&fit=crop&w=600&q=80', text: 'Schau dir diese Stille an.' },
@@ -173,25 +169,34 @@
             { id: 24, type: 'image', title: 'Frohes Fest! 🎄', content: 'https://images.unsplash.com/photo-1543589077-47d81606c1bf?auto=format&fit=crop&w=600&q=80', text: 'Genieße die magische Zeit!' }
         ];
 
-        // Daten auffüllen auf 24, falls welche fehlen
-        while(rawData.length < 24) {
-            // Wir suchen die nächste freie ID
-            const existingIds = rawData.map(d => d.id);
-            let nextId = 1;
-            while(existingIds.includes(nextId)) nextId++;
-            
-            rawData.push({ 
-                id: nextId, 
-                type: 'text', 
-                title: `Tag ${nextId}`, 
-                content: 'Noch etwas Geduld in der Kälte...' 
-            });
+        // --- HILFSFUNKTIONEN ---
+
+        // 1. Daten auffüllen
+        function prepareData(baseData) {
+            const filledData = [...baseData];
+            const existingIds = filledData.map(d => d.id);
+            for(let i = 1; i <= 24; i++) {
+                if(!existingIds.includes(i)) {
+                    filledData.push({ 
+                        id: i, 
+                        type: 'text', 
+                        title: `Tag ${i}`, 
+                        content: 'Geduld ist eine Tugend...' 
+                    });
+                }
+            }
+            return filledData;
         }
 
-        // --- HIER PASSIERT DAS CHAOS (SHUFFLE) ---
-        // Wir mischen das Array zufällig durch.
-        // Da wir es hier machen, passiert es einmal beim Laden der Seite.
-        const shuffledData = [...rawData].sort(() => Math.random() - 0.5);
+        // 2. Mischen (Fisher-Yates)
+        function shuffleArray(array) {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]]; 
+            }
+            return arr;
+        }
 
 
         // --- COMPONENTS ---
@@ -227,14 +232,46 @@
             return <>{sparkles.map(s => (<div key={s.id} className="cursor-sparkle" style={{ left: s.x, top: s.y }} />))}</>;
         };
 
+        // --- HAUPT APP ---
         const AdventCalendar = () => {
+            const [calendarItems, setCalendarItems] = useState([]);
             const [openedDoors, setOpenedDoors] = useState([]);
             const [activeContent, setActiveContent] = useState(null);
             const [shakeId, setShakeId] = useState(null);
             
+            // INIT: Daten vorbereiten + Position speichern
             useEffect(() => {
-                const saved = localStorage.getItem('adventProgressFrost');
-                if (saved) setOpenedDoors(JSON.parse(saved));
+                // 1. Alle Daten bereitstellen (1-24)
+                const fullData = prepareData(rawData);
+                
+                // 2. Prüfen: Gibt es schon eine gespeicherte Reihenfolge (Order)?
+                const savedOrder = localStorage.getItem('adventOrder2024');
+                let finalItems = [];
+
+                if (savedOrder) {
+                    // JA: Wir nutzen die gespeicherte Reihenfolge der IDs
+                    const orderIds = JSON.parse(savedOrder);
+                    // Wir sortieren fullData basierend auf der gespeicherten ID-Liste
+                    finalItems = orderIds.map(id => fullData.find(item => item.id === id)).filter(Boolean);
+                    
+                    // Fallback, falls sich Daten geändert haben (Safety Check)
+                    if (finalItems.length !== 24) {
+                         finalItems = shuffleArray(fullData);
+                         localStorage.setItem('adventOrder2024', JSON.stringify(finalItems.map(d => d.id)));
+                    }
+
+                } else {
+                    // NEIN: Wir mischen neu und speichern die Reihenfolge
+                    finalItems = shuffleArray(fullData);
+                    // Speichere NUR die IDs (das reicht für die Reihenfolge)
+                    localStorage.setItem('adventOrder2024', JSON.stringify(finalItems.map(d => d.id)));
+                }
+
+                setCalendarItems(finalItems);
+
+                // 3. Geöffnete Türen laden
+                const savedProgress = localStorage.getItem('adventProgressFrost');
+                if (savedProgress) setOpenedDoors(JSON.parse(savedProgress));
             }, []);
 
             const fireConfetti = () => {
@@ -247,11 +284,22 @@
 
             const handleDoorClick = (day) => {
                 const today = new Date();
+                
+                // --- DEBUG MODUS (Auf true setzen zum Testen) ---
                 const isDebug = false; 
+
+                // Wenn Tür schon offen ist, zeige Inhalt sofort (egal welches Datum)
+                if (openedDoors.includes(day.id)) {
+                    setActiveContent(day);
+                    return;
+                }
+
+                // Check Datum
                 const isAllowed = isDebug || (today.getMonth() === 11 && today.getDate() >= day.id);
 
                 if (isAllowed) {
                     setActiveContent(day);
+                    // Nur speichern, wenn noch nicht offen
                     if (!openedDoors.includes(day.id)) {
                         fireConfetti();
                         const newOpened = [...openedDoors, day.id];
@@ -270,19 +318,16 @@
                     <CursorEffect />
                     <div className="calendar-container">
                         <h1>Kai's Adventskalender</h1>
-                        <p className="subtitle">Spiel und Spaß an jedem Tag!</p>
+                        <p className="subtitle">Powered by KI & Kabelsalat</p>
 
                         <div className="calendar-grid">
-                            {/* Wir nutzen jetzt shuffledData statt calendarData zum Anzeigen */}
-                            {shuffledData.map((day) => (
+                            {calendarItems.map((day) => (
                                 <div 
                                     key={day.id}
                                     className={`day-card 
                                         ${openedDoors.includes(day.id) ? 'opened' : ''} 
                                         ${shakeId === day.id ? 'locked-shake' : ''}
                                     `}
-                                    /* Zufälliger Delay beim Einfliegen für mehr Chaos */
-                                    style={{animationDelay: `${Math.random() * 0.5}s`}} 
                                     onClick={() => handleDoorClick(day)}
                                 >
                                     {day.id}
@@ -314,4 +359,3 @@
     </script>
 </body>
 </html>
-
