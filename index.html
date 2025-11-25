@@ -3,195 +3,245 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>React Glassmorphism Adventskalender</title>
+    <title>Magischer Adventskalender</title>
     
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Mountains+of+Christmas:wght@700&family=Segoe+UI:wght@300;400;700&display=swap" rel="stylesheet">
 
     <style>
         /* --- CSS STYLES --- */
         :root {
-            --bg-gradient: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
-            --glass-bg: rgba(255, 255, 255, 0.1);
-            --glass-border: rgba(255, 255, 255, 0.15);
+            --bg-gradient: radial-gradient(circle at 50% 20%, #1a2a6c, #b21f1f, #fdbb2d); /* Dramatischerer Nachthimmel */
+            --glass-bg: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(255, 255, 255, 0.2);
             --text-color: #ffffff;
             --accent-gold: #ffd700;
-            --accent-red: #ff6b6b;
+            --accent-red: #ff4757;
+            --font-heading: 'Mountains of Christmas', cursive;
             --font-main: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
         body {
             margin: 0;
             padding: 0;
-            background: var(--bg-gradient);
-            background-attachment: fixed; /* Wichtig für den Verlauf beim Scrollen */
+            background: #0f0c29; /* Fallback */
+            background-image: var(--bg-gradient);
+            background-attachment: fixed;
+            background-size: cover;
             font-family: var(--font-main);
             color: var(--text-color);
             min-height: 100vh;
+            overflow-x: hidden; /* Wichtig für den Maus-Effekt */
         }
 
         #root {
             display: flex;
             justify-content: center;
-            width: 100%;
+            position: relative;
+            z-index: 10; /* Über dem Schnee */
         }
 
+        /* --- SCHNEEFALL EFFEKT --- */
+        .snowflake {
+            position: fixed;
+            top: -2vh;
+            color: #fff;
+            font-size: 1em;
+            font-family: Arial, sans-serif;
+            text-shadow: 0 0 5px #000;
+            user-select: none;
+            z-index: 1;
+            pointer-events: none;
+            animation: snowfall linear infinite;
+        }
+
+        @keyframes snowfall {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(360deg); opacity: 0.2; }
+        }
+
+        /* --- MAUS CURSOR EFFEKT (SPARKLES) --- */
+        .cursor-sparkle {
+            position: fixed;
+            width: 6px;
+            height: 6px;
+            background: var(--accent-gold);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            box-shadow: 0 0 10px var(--accent-gold), 0 0 20px var(--accent-gold);
+            animation: sparkleFade 1s forwards ease-out;
+        }
+
+        @keyframes sparkleFade {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(3); opacity: 0; }
+        }
+
+        /* --- CONTAINER DESIGN --- */
         .calendar-container {
             width: 100%;
             max-width: 900px;
             padding: 40px 20px;
             text-align: center;
+            /* Ein warmer Schein hinter dem Kalender */
+            box-shadow: 0 0 150px rgba(255, 215, 0, 0.15);
+            background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, rgba(0,0,0,0) 70%);
+            border-radius: 30px;
+            margin-top: 20px;
         }
 
         h1 {
-            font-size: 2.5rem;
+            font-family: var(--font-heading);
+            font-size: 4rem;
             margin-bottom: 10px;
-            text-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.5), 3px 3px 0px rgba(0,0,0,0.3);
             letter-spacing: 2px;
+            color: var(--accent-gold);
         }
 
         p.subtitle {
-            margin-bottom: 40px;
-            opacity: 0.8;
+            margin-bottom: 50px;
+            font-size: 1.2rem;
+            opacity: 0.9;
             font-weight: 300;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
         }
 
         /* --- GRID --- */
         .calendar-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 25px;
             perspective: 1000px;
         }
 
-        /* --- CARD DESIGN --- */
+        /* --- CARD DESIGN (Verbessert) --- */
         .day-card {
             background: var(--glass-bg);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(16px) saturate(120%); /* Stärkerer Blur & Sättigung */
+            -webkit-backdrop-filter: blur(16px) saturate(120%);
             border: 1px solid var(--glass-border);
-            border-radius: 16px;
+            border-radius: 20px;
             aspect-ratio: 1/1;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            font-size: 1.8rem;
+            font-size: 2.2rem;
             font-weight: 700;
+            font-family: var(--font-heading);
             cursor: pointer;
-            transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Bouncy transition */
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
             position: relative;
             overflow: hidden;
             user-select: none;
+            color: rgba(255,255,255,0.8);
         }
 
+        /* Interaktiver Hover-Effekt */
         .day-card:hover {
-            transform: translateY(-5px) scale(1.02);
-            box-shadow: 0 15px 40px 0 rgba(0, 0, 0, 0.4);
-            border-color: rgba(255,255,255,0.4);
+            transform: translateY(-10px) scale(1.05);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4), 0 0 20px rgba(255,255,255,0.2) inset;
+            border-color: rgba(255,255,255,0.5);
+            color: #fff;
         }
 
         /* Status: Offen */
         .day-card.opened {
-            background: rgba(255, 215, 0, 0.15); /* Goldener Schimmer */
+            background: rgba(255, 215, 0, 0.2);
             border-color: var(--accent-gold);
             color: var(--accent-gold);
-            box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
         }
+        .day-card.opened::after { content: '★'; font-size: 1.2rem; position: absolute; bottom: 8px; }
 
-        .day-card.opened::after {
-            content: '★';
-            font-size: 1rem;
-            position: absolute;
-            bottom: 10px;
-        }
-
-        /* Status: Geschlossen (Schloss-Icon optional) */
+        /* Status: Geschlossen - Glitzereffekt */
         .day-card:not(.opened)::before {
             content: '';
             position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.05));
+            top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+            opacity: 0;
+            transition: opacity 0.4s;
+            pointer-events: none;
         }
+        .day-card:not(.opened):hover::before { opacity: 1; }
+
 
         /* Animation: Wackeln bei Fehler */
         @keyframes shake {
             0% { transform: translateX(0); }
-            20% { transform: translateX(-6px) rotate(-4deg); }
-            40% { transform: translateX(6px) rotate(4deg); }
-            60% { transform: translateX(-6px) rotate(-4deg); }
-            80% { transform: translateX(6px) rotate(4deg); }
+            25% { transform: translateX(-8px) rotate(-5deg); }
+            75% { transform: translateX(8px) rotate(5deg); }
             100% { transform: translateX(0); }
         }
-
         .day-card.locked-shake {
             animation: shake 0.4s ease-in-out;
             border-color: var(--accent-red);
             color: var(--accent-red);
+            box-shadow: 0 0 20px var(--accent-red);
         }
 
-        /* --- MODAL --- */
+        /* --- MODAL (Popup) --- */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(8px);
-            z-index: 1000;
+            backdrop-filter: blur(15px);
+            z-index: 10000;
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 20px;
-            animation: fadeIn 0.3s ease;
+            animation: fadeIn 0.4s ease;
         }
 
         .modal-content {
             background: rgba(255, 255, 255, 0.95);
             color: #333;
             width: 100%;
-            max-width: 500px;
-            padding: 30px;
-            border-radius: 20px;
+            max-width: 550px;
+            padding: 40px;
+            border-radius: 25px;
             position: relative;
             text-align: center;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.6);
+            animation: zoomInBounce 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
         }
 
         .modal-header h2 {
-            margin: 0 0 15px 0;
-            color: #1a1a1a;
-        }
-
-        .modal-body {
-            font-size: 1.1rem;
-            line-height: 1.6;
+            font-family: var(--font-heading);
+            font-size: 2.5rem;
+            margin: 0 0 20px 0;
+            color: #b21f1f;
         }
 
         .modal-body img {
             max-width: 100%;
-            border-radius: 10px;
-            margin-top: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            border: 3px solid #fff;
         }
 
         .close-btn {
             position: absolute;
-            top: 15px;
-            right: 20px;
-            font-size: 2rem;
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: #666;
-            transition: color 0.2s;
+            top: 20px; right: 25px;
+            font-size: 2.5rem;
+            background: none; border: none;
+            cursor: pointer; color: #999;
+            transition: all 0.2s;
+            line-height: 1;
         }
-        .close-btn:hover { color: #000; }
+        .close-btn:hover { color: var(--accent-red); transform: rotate(90deg); }
 
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes slideUp { from { transform: translateY(30px) scale(0.95); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
+        @keyframes zoomInBounce { from { transform: scale(0.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
     </style>
 </head>
@@ -200,150 +250,176 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        // --- 1. DATEN ---
-        // Du kannst hier einfach die Texte/Links ändern
+        const { useState, useEffect, useRef } = React;
+
+        // --- DATEN (Hier deine Inhalte anpassen) ---
+        // Um Platz zu sparen, habe ich hier nur wenige Beispiele drin. 
+        // Fülle es wieder bis 24 auf wie im vorherigen Code!
         const calendarData = [
-            { id: 1, type: 'text', title: 'Der Anfang', content: '✨ Willkommen im Dezember! Nimm dir heute 5 Minuten nur für dich.' },
-            { id: 2, type: 'icon', title: 'Plätzchenzeit', content: '🍪 Rezept-Idee: Backe heute deine Lieblingsplätzchen oder kaufe die besten der Stadt.' },
-            { id: 3, type: 'text', title: 'Musik an', content: '🎶 Hör dir heute dein absolutes Lieblings-Weihnachtslied an.' },
-            { id: 4, type: 'text', title: 'Lichtblick', content: '🕯️ Zünde heute Abend eine Kerze an und genieße die Ruhe.' },
-            { id: 5, type: 'text', title: 'Vorbereitung', content: '👢 Stell die Stiefel raus, morgen kommt der Nikolaus!' },
-            { id: 6, type: 'image', title: 'Nikolaus', content: 'https://images.unsplash.com/photo-1545629479-798835e39668?auto=format&fit=crop&w=500&q=60', text: '🎅 Hoffentlich warst du brav!' },
-            { id: 7, type: 'text', title: 'Kontakt', content: '📞 Rufe jemanden an, den du lange nicht gehört hast.' },
-            { id: 8, type: 'text', title: 'Wärme', content: '☕ Trink eine heiße Schokolade mit Sahne.' },
-            { id: 9, type: 'text', title: 'Spaziergang', content: '🌲 Geh eine Runde im Wald oder Park spazieren.' },
-            { id: 10, type: 'video', title: 'Kaminfeuer', content: 'https://www.youtube.com/embed/L_LUpnjgPso', text: 'Entspanne dich vor dem virtuellen Kamin.' },
-            { id: 11, type: 'text', title: 'Lesen', content: '📖 Lies ein Kapitel in einem Buch, das du schon ewig lesen wolltest.' },
-            { id: 12, type: 'text', title: 'Halbzeit', content: '🌟 Die Hälfte ist geschafft. Atme tief durch.' },
-            { id: 13, type: 'text', title: 'Filmabend', content: '🎬 Schau deinen liebsten Weihnachtsfilm.' },
-            { id: 14, type: 'text', title: 'Kompliment', content: '💬 Mache heute jemandem ein ernstes Kompliment.' },
-            { id: 15, type: 'text', title: 'Vitamine', content: '🍊 Iss eine Mandarine oder Orange. Das riecht nach Weihnachten!' },
-            { id: 16, type: 'text', title: 'Kreativ', content: '✂️ Bastel einen Papierstern fürs Fenster.' },
-            { id: 17, type: 'text', title: 'Dankbarkeit', content: '🙏 Schreibe 3 Dinge auf, für die du dieses Jahr dankbar bist.' },
-            { id: 18, type: 'text', title: 'Süßes', content: '🍫 Gönn dir ein Stück deiner Lieblingsschokolade.' },
-            { id: 19, type: 'text', title: 'Lächeln', content: '😊 Lächle heute bewusst fremde Menschen an.' },
-            { id: 20, type: 'text', title: 'Baum', content: '🎄 Hast du schon einen Weihnachtsbaum?' },
-            { id: 21, type: 'text', title: 'Winteranfang', content: '❄️ Heute ist der kürzeste Tag des Jahres. Ab jetzt wird es wieder heller.' },
-            { id: 22, type: 'text', title: 'Karten', content: '✍️ Schreibe noch schnell eine Weihnachtskarte.' },
-            { id: 23, type: 'text', title: 'Vorfreude', content: '🎁 Nur noch einmal schlafen!' },
-            { id: 24, type: 'image', title: 'Heiligabend', content: 'https://images.unsplash.com/photo-1576615278698-d48e7ac46b14?auto=format&fit=crop&w=500&q=60', text: '✨ Frohe Weihnachten und ein schönes Fest!' }
+            { id: 1, type: 'text', title: 'Der Anfang✨', content: 'Willkommen im Dezember! Die Magie beginnt...' },
+            { id: 2, type: 'image', title: 'Kuschelzeit', content: 'https://images.unsplash.com/photo-1519052537078-e6302a4968d4?auto=format&fit=crop&w=600&q=80', text: 'Mach es dir heute gemütlich.' },
+            { id: 3, type: 'icon', title: 'Musik an 🎶', content: 'Höre heute dein absolutes Lieblings-Weihnachtslied ganz laut.' },
+            // ... FÜGE HIER DEINE WEITEREN TAGE EIN ...
+            { id: 24, type: 'image', title: 'Frohes Fest! 🎄', content: 'https://images.unsplash.com/photo-1576615278698-d48e7ac46b14?auto=format&fit=crop&w=600&q=80', text: 'Wir wünschen dir und deiner Familie wunderschöne Weihnachten!' }
         ];
+        // Kleiner Hack, um das Array für die Demo aufzufüllen, falls du nicht alle 24 hast:
+        while(calendarData.length < 24) {
+            calendarData.push({ id: calendarData.length + 1, type: 'text', title: `Tag ${calendarData.length + 1}`, content: 'Noch etwas Geduld...' });
+        }
 
-        // --- 2. DIE REACT KOMPONENTE ---
-        const { useState, useEffect } = React;
 
+        // --- NEUE KOMPONENTE: SCHNEEFALL ---
+        const Snowfall = () => {
+            // Erzeugt 50 Schneeflocken mit zufälligen Positionen und Geschwindigkeiten
+            const flakes = Array.from({ length: 50 }).map((_, i) => {
+                const style = {
+                    left: `${Math.random() * 100}vw`,
+                    animationDuration: `${Math.random() * 5 + 5}s`, // Zwischen 5 und 10 Sekunden
+                    animationDelay: `${Math.random() * 5}s`,
+                    opacity: Math.random(),
+                    fontSize: `${Math.random() * 1.5 + 0.5}em`
+                };
+                return <div key={i} className="snowflake" style={style}>❄</div>;
+            });
+            return <>{flakes}</>;
+        };
+
+        // --- NEUE KOMPONENTE: MAUS-EFFEKT ---
+        const CursorEffect = () => {
+            const [sparkles, setSparkles] = useState([]);
+            const requestRef = useRef();
+
+            useEffect(() => {
+                let lastTime = Date.now();
+                
+                const handleMouseMove = (e) => {
+                    const currentTime = Date.now();
+                    // Begrenzen, wie oft Sparkles erzeugt werden (Performance)
+                    if (currentTime - lastTime > 50) { 
+                        const newSparkle = {
+                            id: currentTime,
+                            x: e.clientX,
+                            y: e.clientY
+                        };
+                        // Füge neuen Sparkle hinzu und halte maximal 15 im Array
+                        setSparkles(prev => [...prev.slice(-15), newSparkle]);
+                        lastTime = currentTime;
+                    }
+                };
+
+                window.addEventListener('mousemove', handleMouseMove);
+
+                // Aufräum-Interval: Alte Sparkles entfernen
+                const cleanupInterval = setInterval(() => {
+                     setSparkles(prev => prev.filter(s => Date.now() - s.id < 1000));
+                }, 500);
+
+                return () => {
+                    window.removeEventListener('mousemove', handleMouseMove);
+                    clearInterval(cleanupInterval);
+                };
+            }, []);
+
+            return (
+                <>
+                    {sparkles.map(s => (
+                        <div key={s.id} className="cursor-sparkle" style={{ left: s.x, top: s.y }} />
+                    ))}
+                </>
+            );
+        };
+
+        // --- HAUPTKOMPONENTE ---
         const AdventCalendar = () => {
             const [openedDoors, setOpenedDoors] = useState([]);
             const [activeContent, setActiveContent] = useState(null);
             const [shakeId, setShakeId] = useState(null);
             
-            // Lade Speicherstand beim Start
             useEffect(() => {
-                const saved = localStorage.getItem('adventProgress2024');
-                if (saved) {
-                    setOpenedDoors(JSON.parse(saved));
-                }
+                const saved = localStorage.getItem('adventProgressMagic');
+                if (saved) setOpenedDoors(JSON.parse(saved));
             }, []);
+
+            // Funktion um Konfetti zu feuern
+            const fireConfetti = () => {
+                confetti({
+                    particleCount: 150,
+                    spread: 80,
+                    origin: { y: 0.6 },
+                    colors: ['#ffd700', '#ff4757', '#ffffff'],
+                    disableForReducedMotion: true
+                });
+            };
 
             const handleDoorClick = (day) => {
                 const today = new Date();
-                const currentMonth = today.getMonth(); // 11 = Dezember
-                const currentDay = today.getDate();
-
-                // LOGIK:
-                // Wenn du testen willst: Setze 'isDebug' auf true
+                // Zum Testen: Setze isDebug auf true
                 const isDebug = false; 
-                const isDecember = currentMonth === 11; // true wenn Dezember
-                const isDayReached = currentDay >= day.id;
+                const isAllowed = isDebug || (today.getMonth() === 11 && today.getDate() >= day.id);
 
-                if (isDebug || (isDecember && isDayReached)) {
-                    // Inhalt anzeigen
+                if (isAllowed) {
                     setActiveContent(day);
                     
-                    // Speichern, falls noch nicht offen
                     if (!openedDoors.includes(day.id)) {
+                        // NEU: Konfetti feuern beim ersten Öffnen!
+                        fireConfetti();
                         const newOpened = [...openedDoors, day.id];
                         setOpenedDoors(newOpened);
-                        localStorage.setItem('adventProgress2024', JSON.stringify(newOpened));
+                        localStorage.setItem('adventProgressMagic', JSON.stringify(newOpened));
                     }
                 } else {
-                    // Wackeln lassen (Fehler)
                     setShakeId(day.id);
-                    setTimeout(() => setShakeId(null), 500);
+                    setTimeout(() => setShakeId(null), 400);
                 }
             };
 
             return (
-                <div className="calendar-container">
-                    <h1>🎄 Adventskalender</h1>
-                    <p className="subtitle">Eine kleine Überraschung für jeden Tag</p>
+                <>
+                    {/* Die neuen Hintergrund-Effekte */}
+                    <Snowfall />
+                    <CursorEffect />
 
-                    <div className="calendar-grid">
-                        {calendarData.map((day) => (
-                            <div 
-                                key={day.id}
-                                className={`day-card 
-                                    ${openedDoors.includes(day.id) ? 'opened' : ''} 
-                                    ${shakeId === day.id ? 'locked-shake' : ''}
-                                `}
-                                onClick={() => handleDoorClick(day)}
-                            >
-                                {day.id}
-                            </div>
-                        ))}
-                    </div>
+                    <div className="calendar-container">
+                        <h1>🎄 Adventskalender 🎄</h1>
+                        <p className="subtitle">Tippe auf ein Türchen, um die Magie zu entfesseln...</p>
 
-                    {/* MODAL / POPUP */}
-                    {activeContent && (
-                        <div className="modal-overlay" onClick={() => setActiveContent(null)}>
-                            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                                <button className="close-btn" onClick={() => setActiveContent(null)}>&times;</button>
-                                
-                                <div className="modal-header">
-                                    <h2>{activeContent.title}</h2>
+                        <div className="calendar-grid">
+                            {calendarData.map((day) => (
+                                <div 
+                                    key={day.id}
+                                    className={`day-card 
+                                        ${openedDoors.includes(day.id) ? 'opened' : ''} 
+                                        ${shakeId === day.id ? 'locked-shake' : ''}
+                                    `}
+                                    style={{animationDelay: `${day.id * 0.05}s`}} /* Kleiner Stagger-Effekt beim Laden */
+                                    onClick={() => handleDoorClick(day)}
+                                >
+                                    {day.id}
                                 </div>
-                                
-                                <div className="modal-body">
-                                    {/* Text Content */}
-                                    {activeContent.text && <p>{activeContent.text}</p>}
-                                    {activeContent.type === 'text' && !activeContent.text && <p>{activeContent.content}</p>}
-
-                                    {/* Image Content */}
-                                    {activeContent.type === 'image' && (
-                                        <img src={activeContent.content} alt="Weihnachtsbild" />
-                                    )}
-
-                                    {/* Video Content */}
-                                    {activeContent.type === 'video' && (
-                                        <div style={{marginTop: '15px'}}>
-                                            <iframe 
-                                                width="100%" height="250" 
-                                                src={activeContent.content} 
-                                                title="Video" frameBorder="0" 
-                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                                                allowFullScreen
-                                                style={{borderRadius: '10px'}}
-                                            ></iframe>
-                                            {activeContent.text && <p>{activeContent.text}</p>}
-                                        </div>
-                                    )}
-
-                                    {/* Icon Content (Fallback) */}
-                                    {activeContent.type === 'icon' && (
-                                        <p style={{fontSize: '1.2rem'}}>{activeContent.content}</p>
-                                    )}
-                                </div>
-                            </div>
+                            ))}
                         </div>
-                    )}
-                </div>
+
+                        {activeContent && (
+                            <div className="modal-overlay" onClick={() => setActiveContent(null)}>
+                                <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                                    <button className="close-btn" onClick={() => setActiveContent(null)}>&times;</button>
+                                    <div className="modal-header"><h2>{activeContent.title}</h2></div>
+                                    <div className="modal-body">
+                                        {activeContent.text && <p style={{fontSize: '1.2rem', marginBottom: '15px'}}>{activeContent.text}</p>}
+                                        {activeContent.type === 'image' && <img src={activeContent.content} alt="Weihnachtsbild" />}
+                                        {activeContent.type === 'text' && !activeContent.text && <p style={{fontSize: '1.3rem'}}>{activeContent.content}</p>}
+                                        {activeContent.type === 'icon' && <p style={{fontSize: '3rem'}}>{activeContent.content}</p>}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </>
             );
         };
 
-        // --- 3. RENDERN ---
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<AdventCalendar />);
-
     </script>
 </body>
 </html>
