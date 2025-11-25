@@ -3,83 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Magischer Adventskalender</title>
+    <title>🎁 Kai's Adventskalender</title>
     
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
-    <link href="https://fonts.googleapis.com/css2?family=Mountains+of+Christmas:wght@700&family=Segoe+UI:wght@300;400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
 
     <style>
-        /* --- CSS STYLES --- */
+        /* --- CSS STYLES: FROST-EDITION --- */
         :root {
-            --bg-gradient: radial-gradient(circle at 50% 20%, #1a2a6c, #b21f1f, #fdbb2d); /* Dramatischerer Nachthimmel */
-            --glass-bg: rgba(255, 255, 255, 0.08);
-            --glass-border: rgba(255, 255, 255, 0.2);
-            --text-color: #ffffff;
-            --accent-gold: #ffd700;
-            --accent-red: #ff4757;
-            --font-heading: 'Mountains of Christmas', cursive;
-            --font-main: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            /* ÄNDERUNG 2: Frostige Winternacht-Palette */
+            --bg-gradient: linear-gradient(to bottom, #020c1b, #0a2342, #1c3a63); /* Tiefes Weltraumblau zu Eisblau */
+            
+            --glass-bg: rgba(200, 230, 255, 0.05); /* Kühlerer Glas-Ton */
+            --glass-border: rgba(137, 207, 240, 0.3); /* Eisblauer Rand */
+            
+            --text-color: #e6f1ff; /* Helles Silberweiß */
+            --text-muted: #a8b2d1;
+            
+            --accent-ice: #89cff0; /* Helles Eisblau (statt Gold) */
+            --accent-error: #ff6b6b; /* Helles Rot für Fehler bleibt */
+
+            --font-heading: 'Cinzel Decorative', cursive;
+            --font-main: 'Montserrat', sans-serif;
         }
 
         body {
             margin: 0;
             padding: 0;
-            background: #0f0c29; /* Fallback */
+            background: #020c1b;
             background-image: var(--bg-gradient);
             background-attachment: fixed;
             background-size: cover;
             font-family: var(--font-main);
             color: var(--text-color);
             min-height: 100vh;
-            overflow-x: hidden; /* Wichtig für den Maus-Effekt */
+            overflow-x: hidden;
         }
 
         #root {
             display: flex;
             justify-content: center;
             position: relative;
-            z-index: 10; /* Über dem Schnee */
+            z-index: 10;
         }
 
-        /* --- SCHNEEFALL EFFEKT --- */
+        /* --- SCHNEEFALL EFFEKT (Unverändert, passt super) --- */
         .snowflake {
             position: fixed;
             top: -2vh;
             color: #fff;
             font-size: 1em;
-            font-family: Arial, sans-serif;
-            text-shadow: 0 0 5px #000;
+            opacity: 0.8;
             user-select: none;
             z-index: 1;
             pointer-events: none;
             animation: snowfall linear infinite;
         }
-
         @keyframes snowfall {
-            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
-            100% { transform: translateY(100vh) rotate(360deg); opacity: 0.2; }
+            0% { transform: translateY(0) rotate(0deg); opacity: 0.8; }
+            100% { transform: translateY(100vh) rotate(360deg); opacity: 0.1; }
         }
 
-        /* --- MAUS CURSOR EFFEKT (SPARKLES) --- */
+        /* --- MAUS CURSOR EFFEKT (Eisiger Schweif) --- */
         .cursor-sparkle {
             position: fixed;
-            width: 6px;
-            height: 6px;
-            background: var(--accent-gold);
+            width: 4px; /* Etwas feiner */
+            height: 4px;
+            background: var(--accent-ice);
             border-radius: 50%;
             pointer-events: none;
             z-index: 9999;
-            box-shadow: 0 0 10px var(--accent-gold), 0 0 20px var(--accent-gold);
+            box-shadow: 0 0 10px var(--accent-ice), 0 0 20px #fff; /* Weißer/Blauer Glow */
             animation: sparkleFade 1s forwards ease-out;
         }
-
         @keyframes sparkleFade {
-            0% { transform: scale(1); opacity: 1; }
-            100% { transform: scale(3); opacity: 0; }
+            0% { transform: scale(1); opacity: 0.8; }
+            100% { transform: scale(2.5); opacity: 0; }
         }
 
         /* --- CONTAINER DESIGN --- */
@@ -88,85 +91,95 @@
             max-width: 900px;
             padding: 40px 20px;
             text-align: center;
-            /* Ein warmer Schein hinter dem Kalender */
-            box-shadow: 0 0 150px rgba(255, 215, 0, 0.15);
-            background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, rgba(0,0,0,0) 70%);
+            /* Kühler, bläulicher Schein */
+            box-shadow: 0 0 100px rgba(137, 207, 240, 0.1);
+            background: radial-gradient(circle, rgba(255,255,255,0.03) 0%, rgba(0,0,0,0) 70%);
             border-radius: 30px;
-            margin-top: 20px;
+            margin-top: 30px;
         }
 
         h1 {
             font-family: var(--font-heading);
-            font-size: 4rem;
+            font-size: 3.5rem;
             margin-bottom: 10px;
-            text-shadow: 0 0 20px rgba(255, 215, 0, 0.5), 3px 3px 0px rgba(0,0,0,0.3);
-            letter-spacing: 2px;
-            color: var(--accent-gold);
+            /* Eisiger Texteffekt */
+            text-shadow: 0 0 15px rgba(137, 207, 240, 0.6), 0 0 30px rgba(137, 207, 240, 0.3);
+            color: var(--text-color);
+            letter-spacing: 1px;
         }
 
         p.subtitle {
             margin-bottom: 50px;
-            font-size: 1.2rem;
-            opacity: 0.9;
+            font-size: 1.1rem;
+            color: var(--text-muted);
             font-weight: 300;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
         }
 
         /* --- GRID --- */
         .calendar-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            gap: 25px;
-            perspective: 1000px;
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            gap: 20px;
         }
 
-        /* --- CARD DESIGN (Verbessert) --- */
+        /* --- CARD DESIGN (Frostig & Fein) --- */
         .day-card {
             background: var(--glass-bg);
-            backdrop-filter: blur(16px) saturate(120%); /* Stärkerer Blur & Sättigung */
-            -webkit-backdrop-filter: blur(16px) saturate(120%);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             border: 1px solid var(--glass-border);
-            border-radius: 20px;
+            border-radius: 16px;
             aspect-ratio: 1/1;
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
-            font-size: 2.2rem;
-            font-weight: 700;
+            font-size: 2rem;
             font-family: var(--font-heading);
             cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Bouncy transition */
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            /* Subtilere Transition */
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
             position: relative;
             overflow: hidden;
             user-select: none;
-            color: rgba(255,255,255,0.8);
+            color: var(--text-color);
         }
 
-        /* Interaktiver Hover-Effekt */
+        /* ÄNDERUNG 3: Neuer, feiner "Vereisungs"-Hover */
         .day-card:hover {
-            transform: translateY(-10px) scale(1.05);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4), 0 0 20px rgba(255,255,255,0.2) inset;
-            border-color: rgba(255,255,255,0.5);
-            color: #fff;
+            /* Weniger Bewegung, weniger Zoom -> nicht mehr "klobig" */
+            transform: translateY(-3px) scale(1.02); 
+            
+            /* Eisiger, scharfer Rand statt weichem Glow */
+            border-color: rgba(255, 255, 255, 0.6);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3), inset 0 0 15px rgba(137, 207, 240, 0.5);
+            
+            /* Optional: Ein Hauch von hellem Frost auf der Oberfläche */
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 40%), var(--glass-bg);
         }
 
-        /* Status: Offen */
+        /* Status: Offen (Eisblau statt Gold) */
         .day-card.opened {
-            background: rgba(255, 215, 0, 0.2);
-            border-color: var(--accent-gold);
-            color: var(--accent-gold);
-            box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+            background: rgba(137, 207, 240, 0.15); /* Eisblaues Inneres */
+            border-color: var(--accent-ice);
+            color: var(--accent-ice);
+            box-shadow: 0 0 20px rgba(137, 207, 240, 0.4); /* Kühler Glow */
         }
-        .day-card.opened::after { content: '★'; font-size: 1.2rem; position: absolute; bottom: 8px; }
+        .day-card.opened::after { 
+            content: '❄'; /* Schneeflocke statt Stern */
+            font-size: 1rem; 
+            position: absolute; 
+            bottom: 8px; 
+            opacity: 0.7;
+        }
 
-        /* Status: Geschlossen - Glitzereffekt */
+        /* Glitzereffekt auf geschlossenen Karten (angepasst auf kühl) */
         .day-card:not(.opened)::before {
             content: '';
             position: absolute;
             top: -50%; left: -50%; width: 200%; height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+            /* Kühlerer Glitzer */
+            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 50%);
             opacity: 0;
             transition: opacity 0.4s;
             pointer-events: none;
@@ -174,25 +187,22 @@
         .day-card:not(.opened):hover::before { opacity: 1; }
 
 
-        /* Animation: Wackeln bei Fehler */
+        /* Wackeln bei Fehler */
         @keyframes shake {
-            0% { transform: translateX(0); }
-            25% { transform: translateX(-8px) rotate(-5deg); }
-            75% { transform: translateX(8px) rotate(5deg); }
-            100% { transform: translateX(0); }
+            0% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } 100% { transform: translateX(0); }
         }
         .day-card.locked-shake {
-            animation: shake 0.4s ease-in-out;
-            border-color: var(--accent-red);
-            color: var(--accent-red);
-            box-shadow: 0 0 20px var(--accent-red);
+            animation: shake 0.3s ease-in-out;
+            border-color: var(--accent-error);
+            color: var(--accent-error);
+            box-shadow: 0 0 15px rgba(255, 107, 107, 0.4);
         }
 
         /* --- MODAL (Popup) --- */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.85);
+            background: rgba(2, 12, 27, 0.85); /* Dunklerer, blauerer Hintergrund */
             backdrop-filter: blur(15px);
             z-index: 10000;
             display: flex;
@@ -203,45 +213,51 @@
         }
 
         .modal-content {
-            background: rgba(255, 255, 255, 0.95);
-            color: #333;
+            /* Kühles Glas-Modal */
+            background: linear-gradient(160deg, rgba(20, 40, 70, 0.9) 0%, rgba(10, 25, 50, 0.95) 100%);
+            border: 1px solid var(--glass-border);
+            color: var(--text-color);
             width: 100%;
             max-width: 550px;
             padding: 40px;
             border-radius: 25px;
             position: relative;
             text-align: center;
-            box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.6);
-            animation: zoomInBounce 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.8);
+            animation: zoomIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .modal-header h2 {
             font-family: var(--font-heading);
-            font-size: 2.5rem;
+            font-size: 2.2rem;
             margin: 0 0 20px 0;
-            color: #b21f1f;
+            color: var(--accent-ice); /* Eisige Überschrift */
+            text-shadow: 0 0 10px rgba(137, 207, 240, 0.3);
         }
+
+        .modal-body { line-height: 1.6; color: var(--text-muted); }
+        .modal-body p.main-text { color: var(--text-color); font-size: 1.2rem; }
 
         .modal-body img {
             max-width: 100%;
             border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-            border: 3px solid #fff;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            border: 2px solid var(--glass-border);
         }
 
         .close-btn {
             position: absolute;
             top: 20px; right: 25px;
-            font-size: 2.5rem;
+            font-size: 2rem;
             background: none; border: none;
-            cursor: pointer; color: #999;
+            cursor: pointer; color: var(--text-muted);
             transition: all 0.2s;
             line-height: 1;
         }
-        .close-btn:hover { color: var(--accent-red); transform: rotate(90deg); }
+        .close-btn:hover { color: var(--text-color); transform: scale(1.1); }
 
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes zoomInBounce { from { transform: scale(0.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        @keyframes zoomIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
     </style>
 </head>
@@ -252,81 +268,52 @@
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
 
-        // --- DATEN (Hier deine Inhalte anpassen) ---
-        // Um Platz zu sparen, habe ich hier nur wenige Beispiele drin. 
-        // Fülle es wieder bis 24 auf wie im vorherigen Code!
+        // --- DATEN ---
+        // (Hier wie immer deine Inhalte anpassen)
         const calendarData = [
-            { id: 1, type: 'text', title: 'Der Anfang✨', content: 'Willkommen im Dezember! Die Magie beginnt...' },
-            { id: 2, type: 'image', title: 'Kuschelzeit', content: 'https://images.unsplash.com/photo-1519052537078-e6302a4968d4?auto=format&fit=crop&w=600&q=80', text: 'Mach es dir heute gemütlich.' },
-            { id: 3, type: 'icon', title: 'Musik an 🎶', content: 'Höre heute dein absolutes Lieblings-Weihnachtslied ganz laut.' },
-            // ... FÜGE HIER DEINE WEITEREN TAGE EIN ...
-            { id: 24, type: 'image', title: 'Frohes Fest! 🎄', content: 'https://images.unsplash.com/photo-1576615278698-d48e7ac46b14?auto=format&fit=crop&w=600&q=80', text: 'Wir wünschen dir und deiner Familie wunderschöne Weihnachten!' }
+            { id: 1, type: 'text', title: 'Der erste Frost ❄️', content: 'Willkommen in der Kälte! Mach dir einen warmen Tee und genieße die Ruhe.' },
+            { id: 2, type: 'image', title: 'Winterlandschaft', content: 'https://images.unsplash.com/photo-1485594050903-8e8ee5326c90?auto=format&fit=crop&w=600&q=80', text: 'Schau dir diese Stille an.' },
+            { id: 3, type: 'icon', title: 'Eiskristall', content: 'Die Natur malt die schönsten Bilder.' },
+            // ... Restliche Tage auffüllen ...
+            { id: 24, type: 'image', title: 'Frohes Fest! 🎄', content: 'https://images.unsplash.com/photo-1543589077-47d81606c1bf?auto=format&fit=crop&w=600&q=80', text: 'Genieße die magische Zeit!' }
         ];
-        // Kleiner Hack, um das Array für die Demo aufzufüllen, falls du nicht alle 24 hast:
         while(calendarData.length < 24) {
-            calendarData.push({ id: calendarData.length + 1, type: 'text', title: `Tag ${calendarData.length + 1}`, content: 'Noch etwas Geduld...' });
+            calendarData.push({ id: calendarData.length + 1, type: 'text', title: `Tag ${calendarData.length + 1}`, content: 'Noch etwas Geduld in der Kälte...' });
         }
 
-
-        // --- NEUE KOMPONENTE: SCHNEEFALL ---
+        // --- SCHNEEFALL (Unverändert) ---
         const Snowfall = () => {
-            // Erzeugt 50 Schneeflocken mit zufälligen Positionen und Geschwindigkeiten
             const flakes = Array.from({ length: 50 }).map((_, i) => {
                 const style = {
                     left: `${Math.random() * 100}vw`,
-                    animationDuration: `${Math.random() * 5 + 5}s`, // Zwischen 5 und 10 Sekunden
+                    animationDuration: `${Math.random() * 5 + 8}s`, // Etwas langsamerer Schnee
                     animationDelay: `${Math.random() * 5}s`,
-                    opacity: Math.random(),
-                    fontSize: `${Math.random() * 1.5 + 0.5}em`
+                    opacity: Math.random() * 0.7 + 0.3,
+                    fontSize: `${Math.random() * 1.2 + 0.4}em`
                 };
                 return <div key={i} className="snowflake" style={style}>❄</div>;
             });
             return <>{flakes}</>;
         };
 
-        // --- NEUE KOMPONENTE: MAUS-EFFEKT ---
+        // --- MAUS-EFFEKT (Unverändert) ---
         const CursorEffect = () => {
             const [sparkles, setSparkles] = useState([]);
             const requestRef = useRef();
-
             useEffect(() => {
                 let lastTime = Date.now();
-                
                 const handleMouseMove = (e) => {
                     const currentTime = Date.now();
-                    // Begrenzen, wie oft Sparkles erzeugt werden (Performance)
                     if (currentTime - lastTime > 50) { 
-                        const newSparkle = {
-                            id: currentTime,
-                            x: e.clientX,
-                            y: e.clientY
-                        };
-                        // Füge neuen Sparkle hinzu und halte maximal 15 im Array
-                        setSparkles(prev => [...prev.slice(-15), newSparkle]);
+                        setSparkles(prev => [...prev.slice(-15), { id: currentTime, x: e.clientX, y: e.clientY }]);
                         lastTime = currentTime;
                     }
                 };
-
                 window.addEventListener('mousemove', handleMouseMove);
-
-                // Aufräum-Interval: Alte Sparkles entfernen
-                const cleanupInterval = setInterval(() => {
-                     setSparkles(prev => prev.filter(s => Date.now() - s.id < 1000));
-                }, 500);
-
-                return () => {
-                    window.removeEventListener('mousemove', handleMouseMove);
-                    clearInterval(cleanupInterval);
-                };
+                const cleanupInterval = setInterval(() => { setSparkles(prev => prev.filter(s => Date.now() - s.id < 1000)); }, 500);
+                return () => { window.removeEventListener('mousemove', handleMouseMove); clearInterval(cleanupInterval); };
             }, []);
-
-            return (
-                <>
-                    {sparkles.map(s => (
-                        <div key={s.id} className="cursor-sparkle" style={{ left: s.x, top: s.y }} />
-                    ))}
-                </>
-            );
+            return <>{sparkles.map(s => (<div key={s.id} className="cursor-sparkle" style={{ left: s.x, top: s.y }} />))}</>;
         };
 
         // --- HAUPTKOMPONENTE ---
@@ -336,52 +323,49 @@
             const [shakeId, setShakeId] = useState(null);
             
             useEffect(() => {
-                const saved = localStorage.getItem('adventProgressMagic');
+                const saved = localStorage.getItem('adventProgressFrost');
                 if (saved) setOpenedDoors(JSON.parse(saved));
             }, []);
 
-            // Funktion um Konfetti zu feuern
+            // ÄNDERUNG 4: Konfetti in Eis-Farben
             const fireConfetti = () => {
                 confetti({
                     particleCount: 150,
                     spread: 80,
                     origin: { y: 0.6 },
-                    colors: ['#ffd700', '#ff4757', '#ffffff'],
+                    // Farben: Weiß, Hellblau, Silber
+                    colors: ['#ffffff', '#89cff0', '#e0f7fa', '#bdc3c7'],
                     disableForReducedMotion: true
                 });
             };
 
             const handleDoorClick = (day) => {
                 const today = new Date();
-                // Zum Testen: Setze isDebug auf true
-                const isDebug = false; 
+                const isDebug = false; // Auf true setzen zum Testen
                 const isAllowed = isDebug || (today.getMonth() === 11 && today.getDate() >= day.id);
 
                 if (isAllowed) {
                     setActiveContent(day);
-                    
                     if (!openedDoors.includes(day.id)) {
-                        // NEU: Konfetti feuern beim ersten Öffnen!
                         fireConfetti();
                         const newOpened = [...openedDoors, day.id];
                         setOpenedDoors(newOpened);
-                        localStorage.setItem('adventProgressMagic', JSON.stringify(newOpened));
+                        localStorage.setItem('adventProgressFrost', JSON.stringify(newOpened));
                     }
                 } else {
                     setShakeId(day.id);
-                    setTimeout(() => setShakeId(null), 400);
+                    setTimeout(() => setShakeId(null), 300);
                 }
             };
 
             return (
                 <>
-                    {/* Die neuen Hintergrund-Effekte */}
                     <Snowfall />
                     <CursorEffect />
 
                     <div className="calendar-container">
-                        <h1>🎄 Adventskalender 🎄</h1>
-                        <p className="subtitle">Tippe auf ein Türchen, um die Magie zu entfesseln...</p>
+                        <h1>Kai's Adventskalender</h1>
+                        <p className="subtitle">Eine eisige Reise durch den Dezember</p>
 
                         <div className="calendar-grid">
                             {calendarData.map((day) => (
@@ -391,7 +375,7 @@
                                         ${openedDoors.includes(day.id) ? 'opened' : ''} 
                                         ${shakeId === day.id ? 'locked-shake' : ''}
                                     `}
-                                    style={{animationDelay: `${day.id * 0.05}s`}} /* Kleiner Stagger-Effekt beim Laden */
+                                    style={{animationDelay: `${day.id * 0.03}s`}}
                                     onClick={() => handleDoorClick(day)}
                                 >
                                     {day.id}
@@ -405,9 +389,9 @@
                                     <button className="close-btn" onClick={() => setActiveContent(null)}>&times;</button>
                                     <div className="modal-header"><h2>{activeContent.title}</h2></div>
                                     <div className="modal-body">
-                                        {activeContent.text && <p style={{fontSize: '1.2rem', marginBottom: '15px'}}>{activeContent.text}</p>}
-                                        {activeContent.type === 'image' && <img src={activeContent.content} alt="Weihnachtsbild" />}
-                                        {activeContent.type === 'text' && !activeContent.text && <p style={{fontSize: '1.3rem'}}>{activeContent.content}</p>}
+                                        {activeContent.text && <p className="main-text">{activeContent.text}</p>}
+                                        {activeContent.type === 'image' && <img src={activeContent.content} alt="Weihnachtsbild" style={{marginTop: '15px'}} />}
+                                        {activeContent.type === 'text' && !activeContent.text && <p className="main-text">{activeContent.content}</p>}
                                         {activeContent.type === 'icon' && <p style={{fontSize: '3rem'}}>{activeContent.content}</p>}
                                     </div>
                                 </div>
