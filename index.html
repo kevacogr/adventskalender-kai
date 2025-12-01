@@ -13,7 +13,7 @@
                 type: 'image', // Wir nutzen jetzt nur noch den Typ 'image'
                 title: `Türchen ${i}`,
                 // Hier wird der Pfad zum Bild zusammengesetzt: Images/1.jpg, Images/2.jpg usw.
-                content: `Images/${i}.jpg`, 
+                content: `images/${i}.jpg`, 
                 text: '' // Optional: Hier könnte ein Text stehen, falls gewünscht
             });
         }
@@ -191,3 +191,4 @@
     const root = ReactDOM.createRoot(document.getElementById('root'));
     root.render(<AdventCalendar />);
 </script>
+
