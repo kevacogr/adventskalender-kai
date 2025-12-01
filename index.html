@@ -3,33 +3,36 @@
 <script type="text/babel">
     const { useState, useEffect, useRef } = React;
 
-    // --- DATEN: 24 BILDER AUS "images" ---
-    function prepareData() {
+    // --- DATEN GENERIERUNG ---
+    // Erstellt automatisch Daten für Tag 1 bis 24 basierend auf dem Images-Ordner
+    function generateCalendarData() {
         const data = [];
         for (let i = 1; i <= 24; i++) {
             data.push({
                 id: i,
-                type: 'image',
+                type: 'image', // Wir nutzen jetzt nur noch den Typ 'image'
                 title: `Türchen ${i}`,
-                // Pfad zum Bild, z.B. /images/1.jpg
-                content: `images/${i}.jpg`,
-                // optionaler Untertitel, falls du willst:
-                text: ''
+                // Hier wird der Pfad zum Bild zusammengesetzt: Images/1.jpg, Images/2.jpg usw.
+                content: `Images/${i}.jpg`, 
+                text: '' // Optional: Hier könnte ein Text stehen, falls gewünscht
             });
         }
         return data;
     }
 
-    // --- Mischen (Fisher-Yates) ---
+    // --- HILFSFUNKTIONEN ---
+
+    // Mischen (Fisher-Yates)
     function shuffleArray(array) {
         const arr = [...array];
         for (let i = arr.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
-            [arr[i], arr[j]] = [arr[j], arr[i]];
+            [arr[i], arr[j]] = [arr[j], arr[i]]; 
         }
         return arr;
     }
 
+    // --- COMPONENTS ---
     const Snowfall = () => {
         const flakes = Array.from({ length: 50 }).map((_, i) => {
             const style = {
@@ -50,99 +53,76 @@
             let lastTime = Date.now();
             const handleMouseMove = (e) => {
                 const currentTime = Date.now();
-                if (currentTime - lastTime > 50) {
-                    setSparkles(prev => [
-                        ...prev.slice(-15),
-                        { id: currentTime, x: e.clientX, y: e.clientY }
-                    ]);
+                if (currentTime - lastTime > 50) { 
+                    setSparkles(prev => [...prev.slice(-15), { id: currentTime, x: e.clientX, y: e.clientY }]);
                     lastTime = currentTime;
                 }
             };
             window.addEventListener('mousemove', handleMouseMove);
-            const cleanupInterval = setInterval(() => {
-                setSparkles(prev => prev.filter(s => Date.now() - s.id < 1000));
-            }, 500);
-            return () => {
-                window.removeEventListener('mousemove', handleMouseMove);
-                clearInterval(cleanupInterval);
-            };
+            const cleanupInterval = setInterval(() => { setSparkles(prev => prev.filter(s => Date.now() - s.id < 1000)); }, 500);
+            return () => { window.removeEventListener('mousemove', handleMouseMove); clearInterval(cleanupInterval); };
         }, []);
-        return (
-            <>
-                {sparkles.map(s => (
-                    <div
-                        key={s.id}
-                        className="cursor-sparkle"
-                        style={{ left: s.x, top: s.y }}
-                    />
-                ))}
-            </>
-        );
+        return <>{sparkles.map(s => (<div key={s.id} className="cursor-sparkle" style={{ left: s.x, top: s.y }} />))}</>;
     };
 
+    // --- HAUPT APP ---
     const AdventCalendar = () => {
         const [calendarItems, setCalendarItems] = useState([]);
         const [openedDoors, setOpenedDoors] = useState([]);
         const [activeContent, setActiveContent] = useState(null);
         const [shakeId, setShakeId] = useState(null);
-
+        
         useEffect(() => {
-            // 1. Daten für 24 Bilder erzeugen
-            const fullData = prepareData();
-
-            // 2. Reihenfolge laden/speichern
-            const savedOrder = localStorage.getItem('adventOrder2024');
+            // 1. Generiere die Daten (1-24 Bilder)
+            const fullData = generateCalendarData();
+            
+            // 2. Prüfen: Gibt es schon eine gespeicherte Reihenfolge?
+            // HINWEIS: Key geändert auf 'adventOrderImages2024', damit alte Tests nicht stören
+            const savedOrder = localStorage.getItem('adventOrderImages2024');
             let finalItems = [];
 
             if (savedOrder) {
                 const orderIds = JSON.parse(savedOrder);
-                finalItems = orderIds
-                    .map(id => fullData.find(item => item.id === id))
-                    .filter(Boolean);
-
+                finalItems = orderIds.map(id => fullData.find(item => item.id === id)).filter(Boolean);
+                
+                // Safety Check falls Array Längen nicht stimmen
                 if (finalItems.length !== 24) {
-                    finalItems = shuffleArray(fullData);
-                    localStorage.setItem(
-                        'adventOrder2024',
-                        JSON.stringify(finalItems.map(d => d.id))
-                    );
+                     finalItems = shuffleArray(fullData);
+                     localStorage.setItem('adventOrderImages2024', JSON.stringify(finalItems.map(d => d.id)));
                 }
             } else {
                 finalItems = shuffleArray(fullData);
-                localStorage.setItem(
-                    'adventOrder2024',
-                    JSON.stringify(finalItems.map(d => d.id))
-                );
+                localStorage.setItem('adventOrderImages2024', JSON.stringify(finalItems.map(d => d.id)));
             }
 
             setCalendarItems(finalItems);
 
-            // 3. Geöffnete Türen laden
-            const savedProgress = localStorage.getItem('adventProgressFrost');
+            const savedProgress = localStorage.getItem('adventProgressImages');
             if (savedProgress) setOpenedDoors(JSON.parse(savedProgress));
         }, []);
 
         const fireConfetti = () => {
-            confetti({
-                particleCount: 150,
-                spread: 80,
-                origin: { y: 0.6 },
-                colors: ['#ffffff', '#89cff0', '#e0f7fa', '#bdc3c7'],
-                disableForReducedMotion: true
-            });
+            if (typeof confetti === 'function') {
+                confetti({
+                    particleCount: 150, spread: 80, origin: { y: 0.6 },
+                    colors: ['#ffffff', '#89cff0', '#e0f7fa', '#bdc3c7'],
+                    disableForReducedMotion: true
+                });
+            }
         };
 
         const handleDoorClick = (day) => {
             const today = new Date();
-            const isDebug = false;
+            
+            // --- DEBUG MODUS (Auf true setzen zum Testen aller Türchen) ---
+            const isDebug = false; 
 
-            // Bereits geöffnete Tür: immer anzeigen
             if (openedDoors.includes(day.id)) {
                 setActiveContent(day);
                 return;
             }
 
-            // Datum prüfen (Monat 11 = Dezember)
+            // Check Datum: Monat 11 ist Dezember (0-indiziert), Tag muss >= Tür-ID sein
             const isAllowed = isDebug || (today.getMonth() === 11 && today.getDate() >= day.id);
 
             if (isAllowed) {
@@ -151,7 +131,7 @@
                     fireConfetti();
                     const newOpened = [...openedDoors, day.id];
                     setOpenedDoors(newOpened);
-                    localStorage.setItem('adventProgressFrost', JSON.stringify(newOpened));
+                    localStorage.setItem('adventProgressImages', JSON.stringify(newOpened));
                 }
             } else {
                 setShakeId(day.id);
@@ -164,12 +144,12 @@
                 <Snowfall />
                 <CursorEffect />
                 <div className="calendar-container">
-                    <h1>Kai&apos;s Adventskalender</h1>
-                    <p className="subtitle">Powered by KI & Kabelsalat</p>
+                    <h1>Kai's Adventskalender</h1>
+                    <p className="subtitle">Jeden Tag ein neues Bild</p>
 
                     <div className="calendar-grid">
                         {calendarItems.map((day) => (
-                            <div
+                            <div 
                                 key={day.id}
                                 className={`day-card 
                                     ${openedDoors.includes(day.id) ? 'opened' : ''} 
@@ -184,37 +164,21 @@
 
                     {activeContent && (
                         <div className="modal-overlay" onClick={() => setActiveContent(null)}>
-                            <div
-                                className="modal-content"
-                                onClick={(e) => e.stopPropagation()}
-                            >
-                                <button
-                                    className="close-btn"
-                                    onClick={() => setActiveContent(null)}
-                                >
-                                    &times;
-                                </button>
-                                <div className="modal-header">
-                                    <h2>{activeContent.title}</h2>
-                                </div>
+                            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                                <button className="close-btn" onClick={() => setActiveContent(null)}>&times;</button>
+                                <div className="modal-header"><h2>{activeContent.title}</h2></div>
                                 <div className="modal-body">
-                                    {activeContent.text && (
-                                        <p
-                                            style={{
-                                                fontSize: '1.2rem',
-                                                marginBottom: '15px'
-                                            }}
-                                        >
-                                            {activeContent.text}
-                                        </p>
-                                    )}
-                                    {activeContent.type === 'image' && (
-                                        <img
-                                            src={activeContent.content}
-                                            alt={`Türchen ${activeContent.id}`}
-                                            style={{ maxWidth: '100%', borderRadius: '10px' }}
-                                        />
-                                    )}
+                                    {/* Bild Anzeige */}
+                                    <img 
+                                        src={activeContent.content} 
+                                        alt={`Bild für Tag ${activeContent.id}`} 
+                                        onError={(e) => {
+                                            e.target.onerror = null; 
+                                            e.target.src="https://placehold.co/600x400?text=Bild+fehlt";
+                                            e.target.style.border = "2px dashed red";
+                                        }}
+                                    />
+                                    {activeContent.text && <p style={{marginTop: '15px'}}>{activeContent.text}</p>}
                                 </div>
                             </div>
                         </div>
