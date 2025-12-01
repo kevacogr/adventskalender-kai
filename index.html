@@ -1,37 +1,31 @@
 <div id="root"></div>
 
 <script type="text/babel">
-    const { useState, useEffect } = React;
+    const { useState, useEffect, useRef } = React;
 
-    // --- DATEN: 1–24, alle sind Bilder aus /images/<id>.png ---
-    const rawData = Array.from({ length: 24 }, (_, i) => ({
-        id: i + 1,
-        type: 'image',
-        title: `Tür ${i + 1}`
-    }));
-
-    // 1. Daten auffüllen (hier eigentlich nur Safety-Check)
-    function prepareData(baseData) {
-        const filledData = [...baseData];
-        const existingIds = filledData.map(d => d.id);
-        for(let i = 1; i <= 24; i++) {
-            if(!existingIds.includes(i)) {
-                filledData.push({ 
-                    id: i, 
-                    type: 'image', 
-                    title: `Tür ${i}`, 
-                });
-            }
+    // --- DATEN: 24 BILDER AUS "images" ---
+    function prepareData() {
+        const data = [];
+        for (let i = 1; i <= 24; i++) {
+            data.push({
+                id: i,
+                type: 'image',
+                title: `Türchen ${i}`,
+                // Pfad zum Bild, z.B. /images/1.jpg
+                content: `images/${i}.jpg`,
+                // optionaler Untertitel, falls du willst:
+                text: ''
+            });
         }
-        return filledData;
+        return data;
     }
 
-    // 2. Mischen (Fisher-Yates)
+    // --- Mischen (Fisher-Yates) ---
     function shuffleArray(array) {
         const arr = [...array];
         for (let i = arr.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
-            [arr[i], arr[j]] = [arr[j], arr[i]]; 
+            [arr[i], arr[j]] = [arr[j], arr[i]];
         }
         return arr;
     }
@@ -56,18 +50,21 @@
             let lastTime = Date.now();
             const handleMouseMove = (e) => {
                 const currentTime = Date.now();
-                if (currentTime - lastTime > 50) { 
-                    setSparkles(prev => [...prev.slice(-15), { id: currentTime, x: e.clientX, y: e.clientY }]);
+                if (currentTime - lastTime > 50) {
+                    setSparkles(prev => [
+                        ...prev.slice(-15),
+                        { id: currentTime, x: e.clientX, y: e.clientY }
+                    ]);
                     lastTime = currentTime;
                 }
             };
             window.addEventListener('mousemove', handleMouseMove);
-            const cleanupInterval = setInterval(() => { 
-                setSparkles(prev => prev.filter(s => Date.now() - s.id < 1000)); 
+            const cleanupInterval = setInterval(() => {
+                setSparkles(prev => prev.filter(s => Date.now() - s.id < 1000));
             }, 500);
-            return () => { 
-                window.removeEventListener('mousemove', handleMouseMove); 
-                clearInterval(cleanupInterval); 
+            return () => {
+                window.removeEventListener('mousemove', handleMouseMove);
+                clearInterval(cleanupInterval);
             };
         }, []);
         return (
@@ -88,10 +85,12 @@
         const [openedDoors, setOpenedDoors] = useState([]);
         const [activeContent, setActiveContent] = useState(null);
         const [shakeId, setShakeId] = useState(null);
-        
-        useEffect(() => {
-            const fullData = prepareData(rawData);
 
+        useEffect(() => {
+            // 1. Daten für 24 Bilder erzeugen
+            const fullData = prepareData();
+
+            // 2. Reihenfolge laden/speichern
             const savedOrder = localStorage.getItem('adventOrder2024');
             let finalItems = [];
 
@@ -104,46 +103,46 @@
                 if (finalItems.length !== 24) {
                     finalItems = shuffleArray(fullData);
                     localStorage.setItem(
-                        'adventOrder2024', 
+                        'adventOrder2024',
                         JSON.stringify(finalItems.map(d => d.id))
                     );
                 }
             } else {
                 finalItems = shuffleArray(fullData);
                 localStorage.setItem(
-                    'adventOrder2024', 
+                    'adventOrder2024',
                     JSON.stringify(finalItems.map(d => d.id))
                 );
             }
 
             setCalendarItems(finalItems);
 
+            // 3. Geöffnete Türen laden
             const savedProgress = localStorage.getItem('adventProgressFrost');
             if (savedProgress) setOpenedDoors(JSON.parse(savedProgress));
         }, []);
 
         const fireConfetti = () => {
-            if (typeof confetti === 'function') {
-                confetti({
-                    particleCount: 150,
-                    spread: 80,
-                    origin: { y: 0.6 },
-                    colors: ['#ffffff', '#89cff0', '#e0f7fa', '#bdc3c7'],
-                    disableForReducedMotion: true
-                });
-            }
+            confetti({
+                particleCount: 150,
+                spread: 80,
+                origin: { y: 0.6 },
+                colors: ['#ffffff', '#89cff0', '#e0f7fa', '#bdc3c7'],
+                disableForReducedMotion: true
+            });
         };
 
         const handleDoorClick = (day) => {
             const today = new Date();
-            const isDebug = false; 
+            const isDebug = false;
 
-            // Tür schon offen → einfach Bild zeigen
+            // Bereits geöffnete Tür: immer anzeigen
             if (openedDoors.includes(day.id)) {
                 setActiveContent(day);
                 return;
             }
 
+            // Datum prüfen (Monat 11 = Dezember)
             const isAllowed = isDebug || (today.getMonth() === 11 && today.getDate() >= day.id);
 
             if (isAllowed) {
@@ -170,7 +169,7 @@
 
                     <div className="calendar-grid">
                         {calendarItems.map((day) => (
-                            <div 
+                            <div
                                 key={day.id}
                                 className={`day-card 
                                     ${openedDoors.includes(day.id) ? 'opened' : ''} 
@@ -184,16 +183,13 @@
                     </div>
 
                     {activeContent && (
-                        <div 
-                            className="modal-overlay" 
-                            onClick={() => setActiveContent(null)}
-                        >
-                            <div 
-                                className="modal-content" 
+                        <div className="modal-overlay" onClick={() => setActiveContent(null)}>
+                            <div
+                                className="modal-content"
                                 onClick={(e) => e.stopPropagation()}
                             >
-                                <button 
-                                    className="close-btn" 
+                                <button
+                                    className="close-btn"
                                     onClick={() => setActiveContent(null)}
                                 >
                                     &times;
@@ -202,12 +198,23 @@
                                     <h2>{activeContent.title}</h2>
                                 </div>
                                 <div className="modal-body">
-                                    {/* Bild aus /images/<id>.png */}
-                                    <img
-                                        src={`images/${activeContent.id}.png`}
-                                        alt={`Tür ${activeContent.id}`}
-                                        style={{ maxWidth: '100%', height: 'auto' }}
-                                    />
+                                    {activeContent.text && (
+                                        <p
+                                            style={{
+                                                fontSize: '1.2rem',
+                                                marginBottom: '15px'
+                                            }}
+                                        >
+                                            {activeContent.text}
+                                        </p>
+                                    )}
+                                    {activeContent.type === 'image' && (
+                                        <img
+                                            src={activeContent.content}
+                                            alt={`Türchen ${activeContent.id}`}
+                                            style={{ maxWidth: '100%', borderRadius: '10px' }}
+                                        />
+                                    )}
                                 </div>
                             </div>
                         </div>
