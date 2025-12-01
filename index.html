@@ -1,363 +1,222 @@
-<!DOCTYPE html>
-<html lang="de">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎁 Kai's Adventskalender</title>
-    
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<div id="root"></div>
 
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+<script type="text/babel">
+    const { useState, useEffect } = React;
 
-    <style>
-        /* --- FROST DESIGN --- */
-        :root {
-            --bg-gradient: linear-gradient(to bottom, #020c1b, #0a2342, #1c3a63);
-            --glass-bg: rgba(200, 230, 255, 0.05);
-            --glass-border: rgba(137, 207, 240, 0.3);
-            --text-color: #e6f1ff;
-            --text-muted: #a8b2d1;
-            --accent-ice: #89cff0;
-            --accent-error: #ff6b6b;
-            --font-heading: 'Cinzel Decorative', cursive;
-            --font-main: 'Montserrat', sans-serif;
-        }
+    // --- DATEN: 1–24, alle sind Bilder aus /images/<id>.png ---
+    const rawData = Array.from({ length: 24 }, (_, i) => ({
+        id: i + 1,
+        type: 'image',
+        title: `Tür ${i + 1}`
+    }));
 
-        body {
-            margin: 0; padding: 0;
-            background: #020c1b;
-            background-image: var(--bg-gradient);
-            background-attachment: fixed;
-            background-size: cover;
-            font-family: var(--font-main);
-            color: var(--text-color);
-            min-height: 100vh;
-            overflow-x: hidden;
+    // 1. Daten auffüllen (hier eigentlich nur Safety-Check)
+    function prepareData(baseData) {
+        const filledData = [...baseData];
+        const existingIds = filledData.map(d => d.id);
+        for(let i = 1; i <= 24; i++) {
+            if(!existingIds.includes(i)) {
+                filledData.push({ 
+                    id: i, 
+                    type: 'image', 
+                    title: `Tür ${i}`, 
+                });
+            }
         }
+        return filledData;
+    }
 
-        #root { display: flex; justify-content: center; position: relative; z-index: 10; }
+    // 2. Mischen (Fisher-Yates)
+    function shuffleArray(array) {
+        const arr = [...array];
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]]; 
+        }
+        return arr;
+    }
 
-        /* --- SCHNEE --- */
-        .snowflake {
-            position: fixed; top: -2vh; color: #fff; opacity: 0.8;
-            user-select: none; z-index: 1; pointer-events: none;
-            animation: snowfall linear infinite;
-        }
-        @keyframes snowfall {
-            0% { transform: translateY(0) rotate(0deg); opacity: 0.8; }
-            100% { transform: translateY(100vh) rotate(360deg); opacity: 0.1; }
-        }
+    const Snowfall = () => {
+        const flakes = Array.from({ length: 50 }).map((_, i) => {
+            const style = {
+                left: `${Math.random() * 100}vw`,
+                animationDuration: `${Math.random() * 5 + 8}s`,
+                animationDelay: `${Math.random() * 5}s`,
+                opacity: Math.random() * 0.7 + 0.3,
+                fontSize: `${Math.random() * 1.2 + 0.4}em`
+            };
+            return <div key={i} className="snowflake" style={style}>❄</div>;
+        });
+        return <>{flakes}</>;
+    };
 
-        /* --- CURSOR --- */
-        .cursor-sparkle {
-            position: fixed; width: 4px; height: 4px; background: var(--accent-ice);
-            border-radius: 50%; pointer-events: none; z-index: 9999;
-            box-shadow: 0 0 10px var(--accent-ice), 0 0 20px #fff;
-            animation: sparkleFade 1s forwards ease-out;
-        }
-        @keyframes sparkleFade {
-            0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(2.5); opacity: 0; }
-        }
-
-        /* --- CONTAINER --- */
-        .calendar-container {
-            width: 100%; max-width: 900px; padding: 40px 20px; text-align: center;
-            box-shadow: 0 0 100px rgba(137, 207, 240, 0.1);
-            background: radial-gradient(circle, rgba(255,255,255,0.03) 0%, rgba(0,0,0,0) 70%);
-            border-radius: 30px; margin-top: 30px;
-        }
-
-        h1 {
-            font-family: var(--font-heading); font-size: 3.5rem; margin-bottom: 10px;
-            text-shadow: 0 0 15px rgba(137, 207, 240, 0.6); color: var(--text-color);
-        }
-        p.subtitle { margin-bottom: 50px; font-size: 1.1rem; color: var(--text-muted); font-weight: 300; }
-
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-            gap: 20px;
-        }
-
-        /* --- KARTEN --- */
-        .day-card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            border: 1px solid var(--glass-border); border-radius: 16px;
-            aspect-ratio: 1/1; display: flex; justify-content: center; align-items: center;
-            font-size: 2rem; font-family: var(--font-heading); cursor: pointer;
-            transition: all 0.3s ease; box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-            position: relative; overflow: hidden; user-select: none; color: var(--text-color);
-        }
-        .day-card:hover {
-            transform: translateY(-3px) scale(1.02);
-            border-color: rgba(255, 255, 255, 0.6);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3), inset 0 0 15px rgba(137, 207, 240, 0.5);
-            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 40%), var(--glass-bg);
-        }
-        /* OFFENE KARTEN BLEIBEN SO */
-        .day-card.opened {
-            background: rgba(137, 207, 240, 0.15); border-color: var(--accent-ice);
-            color: var(--accent-ice); box-shadow: 0 0 20px rgba(137, 207, 240, 0.4);
-            cursor: default; /* Zeigt an, dass man nicht mehr klicken muss (optional) */
-        }
-        /* Kleines Symbol für offene Karten */
-        .day-card.opened::after { content: '❄'; font-size: 1rem; position: absolute; bottom: 8px; opacity: 0.7; }
-
-        .day-card:not(.opened)::before {
-            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 50%);
-            opacity: 0; transition: opacity 0.4s; pointer-events: none;
-        }
-        .day-card:not(.opened):hover::before { opacity: 1; }
-
-        @keyframes shake {
-            0% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } 100% { transform: translateX(0); }
-        }
-        .day-card.locked-shake {
-            animation: shake 0.3s ease-in-out; border-color: var(--accent-error); color: var(--accent-error);
-            box-shadow: 0 0 15px rgba(255, 107, 107, 0.4);
-        }
-
-        /* --- MODAL --- */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(2, 12, 27, 0.85); backdrop-filter: blur(15px);
-            z-index: 10000; display: flex; justify-content: center; align-items: center; padding: 20px;
-            animation: fadeIn 0.4s ease;
-        }
-        .modal-content {
-            background: linear-gradient(160deg, rgba(20, 40, 70, 0.9) 0%, rgba(10, 25, 50, 0.95) 100%);
-            border: 1px solid var(--glass-border); color: var(--text-color);
-            width: 100%; max-width: 550px; padding: 40px; border-radius: 25px;
-            position: relative; text-align: center; box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.8);
-            animation: zoomIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .modal-header h2 {
-            font-family: var(--font-heading); font-size: 2.2rem; margin: 0 0 20px 0;
-            color: var(--accent-ice); text-shadow: 0 0 10px rgba(137, 207, 240, 0.3);
-        }
-        .modal-body img {
-            max-width: 100%; border-radius: 15px; box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-            border: 2px solid var(--glass-border); margin-top: 15px;
-        }
-        .close-btn {
-            position: absolute; top: 20px; right: 25px; font-size: 2rem; background: none;
-            border: none; cursor: pointer; color: var(--text-muted); line-height: 1;
-        }
-        .close-btn:hover { color: var(--text-color); transform: scale(1.1); }
-
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes zoomIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-    </style>
-</head>
-<body>
-
-    <div id="root"></div>
-
-    <script type="text/babel">
-        const { useState, useEffect, useRef } = React;
-
-        // --- DEINE DATEN (BASIS) ---
-        const rawData = [
-            { id: 1, type: 'text', title: 'Der erste Frost ❄️', content: 'Willkommen in der Kälte! Mach dir einen warmen Tee und genieße die Ruhe.' },
-            { id: 2, type: 'image', title: 'Winterlandschaft', content: 'https://images.unsplash.com/photo-1485594050903-8e8ee5326c90?auto=format&fit=crop&w=600&q=80', text: 'Schau dir diese Stille an.' },
-            { id: 3, type: 'icon', title: 'Eiskristall', content: 'Die Natur malt die schönsten Bilder.' },
-            { id: 24, type: 'image', title: 'Frohes Fest! 🎄', content: 'https://images.unsplash.com/photo-1543589077-47d81606c1bf?auto=format&fit=crop&w=600&q=80', text: 'Genieße die magische Zeit!' }
-        ];
-
-        // --- HILFSFUNKTIONEN ---
-
-        // 1. Daten auffüllen
-        function prepareData(baseData) {
-            const filledData = [...baseData];
-            const existingIds = filledData.map(d => d.id);
-            for(let i = 1; i <= 24; i++) {
-                if(!existingIds.includes(i)) {
-                    filledData.push({ 
-                        id: i, 
-                        type: 'text', 
-                        title: `Tag ${i}`, 
-                        content: 'Geduld ist eine Tugend...' 
-                    });
+    const CursorEffect = () => {
+        const [sparkles, setSparkles] = useState([]);
+        useEffect(() => {
+            let lastTime = Date.now();
+            const handleMouseMove = (e) => {
+                const currentTime = Date.now();
+                if (currentTime - lastTime > 50) { 
+                    setSparkles(prev => [...prev.slice(-15), { id: currentTime, x: e.clientX, y: e.clientY }]);
+                    lastTime = currentTime;
                 }
-            }
-            return filledData;
-        }
+            };
+            window.addEventListener('mousemove', handleMouseMove);
+            const cleanupInterval = setInterval(() => { 
+                setSparkles(prev => prev.filter(s => Date.now() - s.id < 1000)); 
+            }, 500);
+            return () => { 
+                window.removeEventListener('mousemove', handleMouseMove); 
+                clearInterval(cleanupInterval); 
+            };
+        }, []);
+        return (
+            <>
+                {sparkles.map(s => (
+                    <div
+                        key={s.id}
+                        className="cursor-sparkle"
+                        style={{ left: s.x, top: s.y }}
+                    />
+                ))}
+            </>
+        );
+    };
 
-        // 2. Mischen (Fisher-Yates)
-        function shuffleArray(array) {
-            const arr = [...array];
-            for (let i = arr.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [arr[i], arr[j]] = [arr[j], arr[i]]; 
-            }
-            return arr;
-        }
+    const AdventCalendar = () => {
+        const [calendarItems, setCalendarItems] = useState([]);
+        const [openedDoors, setOpenedDoors] = useState([]);
+        const [activeContent, setActiveContent] = useState(null);
+        const [shakeId, setShakeId] = useState(null);
+        
+        useEffect(() => {
+            const fullData = prepareData(rawData);
 
+            const savedOrder = localStorage.getItem('adventOrder2024');
+            let finalItems = [];
 
-        // --- COMPONENTS ---
-        const Snowfall = () => {
-            const flakes = Array.from({ length: 50 }).map((_, i) => {
-                const style = {
-                    left: `${Math.random() * 100}vw`,
-                    animationDuration: `${Math.random() * 5 + 8}s`,
-                    animationDelay: `${Math.random() * 5}s`,
-                    opacity: Math.random() * 0.7 + 0.3,
-                    fontSize: `${Math.random() * 1.2 + 0.4}em`
-                };
-                return <div key={i} className="snowflake" style={style}>❄</div>;
-            });
-            return <>{flakes}</>;
-        };
+            if (savedOrder) {
+                const orderIds = JSON.parse(savedOrder);
+                finalItems = orderIds
+                    .map(id => fullData.find(item => item.id === id))
+                    .filter(Boolean);
 
-        const CursorEffect = () => {
-            const [sparkles, setSparkles] = useState([]);
-            useEffect(() => {
-                let lastTime = Date.now();
-                const handleMouseMove = (e) => {
-                    const currentTime = Date.now();
-                    if (currentTime - lastTime > 50) { 
-                        setSparkles(prev => [...prev.slice(-15), { id: currentTime, x: e.clientX, y: e.clientY }]);
-                        lastTime = currentTime;
-                    }
-                };
-                window.addEventListener('mousemove', handleMouseMove);
-                const cleanupInterval = setInterval(() => { setSparkles(prev => prev.filter(s => Date.now() - s.id < 1000)); }, 500);
-                return () => { window.removeEventListener('mousemove', handleMouseMove); clearInterval(cleanupInterval); };
-            }, []);
-            return <>{sparkles.map(s => (<div key={s.id} className="cursor-sparkle" style={{ left: s.x, top: s.y }} />))}</>;
-        };
-
-        // --- HAUPT APP ---
-        const AdventCalendar = () => {
-            const [calendarItems, setCalendarItems] = useState([]);
-            const [openedDoors, setOpenedDoors] = useState([]);
-            const [activeContent, setActiveContent] = useState(null);
-            const [shakeId, setShakeId] = useState(null);
-            
-            // INIT: Daten vorbereiten + Position speichern
-            useEffect(() => {
-                // 1. Alle Daten bereitstellen (1-24)
-                const fullData = prepareData(rawData);
-                
-                // 2. Prüfen: Gibt es schon eine gespeicherte Reihenfolge (Order)?
-                const savedOrder = localStorage.getItem('adventOrder2024');
-                let finalItems = [];
-
-                if (savedOrder) {
-                    // JA: Wir nutzen die gespeicherte Reihenfolge der IDs
-                    const orderIds = JSON.parse(savedOrder);
-                    // Wir sortieren fullData basierend auf der gespeicherten ID-Liste
-                    finalItems = orderIds.map(id => fullData.find(item => item.id === id)).filter(Boolean);
-                    
-                    // Fallback, falls sich Daten geändert haben (Safety Check)
-                    if (finalItems.length !== 24) {
-                         finalItems = shuffleArray(fullData);
-                         localStorage.setItem('adventOrder2024', JSON.stringify(finalItems.map(d => d.id)));
-                    }
-
-                } else {
-                    // NEIN: Wir mischen neu und speichern die Reihenfolge
+                if (finalItems.length !== 24) {
                     finalItems = shuffleArray(fullData);
-                    // Speichere NUR die IDs (das reicht für die Reihenfolge)
-                    localStorage.setItem('adventOrder2024', JSON.stringify(finalItems.map(d => d.id)));
+                    localStorage.setItem(
+                        'adventOrder2024', 
+                        JSON.stringify(finalItems.map(d => d.id))
+                    );
                 }
+            } else {
+                finalItems = shuffleArray(fullData);
+                localStorage.setItem(
+                    'adventOrder2024', 
+                    JSON.stringify(finalItems.map(d => d.id))
+                );
+            }
 
-                setCalendarItems(finalItems);
+            setCalendarItems(finalItems);
 
-                // 3. Geöffnete Türen laden
-                const savedProgress = localStorage.getItem('adventProgressFrost');
-                if (savedProgress) setOpenedDoors(JSON.parse(savedProgress));
-            }, []);
+            const savedProgress = localStorage.getItem('adventProgressFrost');
+            if (savedProgress) setOpenedDoors(JSON.parse(savedProgress));
+        }, []);
 
-            const fireConfetti = () => {
+        const fireConfetti = () => {
+            if (typeof confetti === 'function') {
                 confetti({
-                    particleCount: 150, spread: 80, origin: { y: 0.6 },
+                    particleCount: 150,
+                    spread: 80,
+                    origin: { y: 0.6 },
                     colors: ['#ffffff', '#89cff0', '#e0f7fa', '#bdc3c7'],
                     disableForReducedMotion: true
                 });
-            };
-
-            const handleDoorClick = (day) => {
-                const today = new Date();
-                
-                // --- DEBUG MODUS (Auf true setzen zum Testen) ---
-                const isDebug = false; 
-
-                // Wenn Tür schon offen ist, zeige Inhalt sofort (egal welches Datum)
-                if (openedDoors.includes(day.id)) {
-                    setActiveContent(day);
-                    return;
-                }
-
-                // Check Datum
-                const isAllowed = isDebug || (today.getMonth() === 11 && today.getDate() >= day.id);
-
-                if (isAllowed) {
-                    setActiveContent(day);
-                    // Nur speichern, wenn noch nicht offen
-                    if (!openedDoors.includes(day.id)) {
-                        fireConfetti();
-                        const newOpened = [...openedDoors, day.id];
-                        setOpenedDoors(newOpened);
-                        localStorage.setItem('adventProgressFrost', JSON.stringify(newOpened));
-                    }
-                } else {
-                    setShakeId(day.id);
-                    setTimeout(() => setShakeId(null), 300);
-                }
-            };
-
-            return (
-                <>
-                    <Snowfall />
-                    <CursorEffect />
-                    <div className="calendar-container">
-                        <h1>Kai's Adventskalender</h1>
-                        <p className="subtitle">Powered by KI & Kabelsalat</p>
-
-                        <div className="calendar-grid">
-                            {calendarItems.map((day) => (
-                                <div 
-                                    key={day.id}
-                                    className={`day-card 
-                                        ${openedDoors.includes(day.id) ? 'opened' : ''} 
-                                        ${shakeId === day.id ? 'locked-shake' : ''}
-                                    `}
-                                    onClick={() => handleDoorClick(day)}
-                                >
-                                    {day.id}
-                                </div>
-                            ))}
-                        </div>
-
-                        {activeContent && (
-                            <div className="modal-overlay" onClick={() => setActiveContent(null)}>
-                                <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                                    <button className="close-btn" onClick={() => setActiveContent(null)}>&times;</button>
-                                    <div className="modal-header"><h2>{activeContent.title}</h2></div>
-                                    <div className="modal-body">
-                                        {activeContent.text && <p style={{fontSize: '1.2rem', marginBottom: '15px'}}>{activeContent.text}</p>}
-                                        {activeContent.type === 'image' && <img src={activeContent.content} alt="Content" />}
-                                        {activeContent.type === 'text' && !activeContent.text && <p style={{fontSize: '1.3rem'}}>{activeContent.content}</p>}
-                                        {activeContent.type === 'icon' && <p style={{fontSize: '3rem'}}>{activeContent.content}</p>}
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </>
-            );
+            }
         };
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<AdventCalendar />);
-    </script>
-</body>
-</html>
+        const handleDoorClick = (day) => {
+            const today = new Date();
+            const isDebug = false; 
 
+            // Tür schon offen → einfach Bild zeigen
+            if (openedDoors.includes(day.id)) {
+                setActiveContent(day);
+                return;
+            }
 
+            const isAllowed = isDebug || (today.getMonth() === 11 && today.getDate() >= day.id);
+
+            if (isAllowed) {
+                setActiveContent(day);
+                if (!openedDoors.includes(day.id)) {
+                    fireConfetti();
+                    const newOpened = [...openedDoors, day.id];
+                    setOpenedDoors(newOpened);
+                    localStorage.setItem('adventProgressFrost', JSON.stringify(newOpened));
+                }
+            } else {
+                setShakeId(day.id);
+                setTimeout(() => setShakeId(null), 300);
+            }
+        };
+
+        return (
+            <>
+                <Snowfall />
+                <CursorEffect />
+                <div className="calendar-container">
+                    <h1>Kai&apos;s Adventskalender</h1>
+                    <p className="subtitle">Powered by KI & Kabelsalat</p>
+
+                    <div className="calendar-grid">
+                        {calendarItems.map((day) => (
+                            <div 
+                                key={day.id}
+                                className={`day-card 
+                                    ${openedDoors.includes(day.id) ? 'opened' : ''} 
+                                    ${shakeId === day.id ? 'locked-shake' : ''}
+                                `}
+                                onClick={() => handleDoorClick(day)}
+                            >
+                                {day.id}
+                            </div>
+                        ))}
+                    </div>
+
+                    {activeContent && (
+                        <div 
+                            className="modal-overlay" 
+                            onClick={() => setActiveContent(null)}
+                        >
+                            <div 
+                                className="modal-content" 
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                <button 
+                                    className="close-btn" 
+                                    onClick={() => setActiveContent(null)}
+                                >
+                                    &times;
+                                </button>
+                                <div className="modal-header">
+                                    <h2>{activeContent.title}</h2>
+                                </div>
+                                <div className="modal-body">
+                                    {/* Bild aus /images/<id>.png */}
+                                    <img
+                                        src={`images/${activeContent.id}.png`}
+                                        alt={`Tür ${activeContent.id}`}
+                                        style={{ maxWidth: '100%', height: 'auto' }}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </>
+        );
+    };
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<AdventCalendar />);
+</script>
